@@ -34,29 +34,37 @@ function drawLine(x1, y1, x2, y2, center = true){
   let balanceX = 0;
   let balanceY = 0;
 
-  if (center){
+  if (center){ // set canvas' center as 0, 0
     balanceX = canvas_w / 2;
     balanceY = canvas_h / 2;
   }
+  
+  // get coords (rel to center) as int
+  x1 = parseInt(x1 + balanceX);
+  x2 = parseInt(x2 + balanceX);
+  y1 = parseInt(y1 + balanceY);
+  y2 = parseInt(y2 + balanceY);
 
   ctx.beginPath(); //New drawing "context"
-  ctx.moveTo(x1 + balanceX, y1 + balanceY); //line start
-  ctx.lineTo(x2 + balanceX, y2 + balanceY); //line end
+  ctx.moveTo(x1, y1); //line start
+  ctx.lineTo(x2, y2); //line end
   ctx.stroke(); //update canvas
 }
 
-function drawPoint(x, y, radius=10){
-  ctx.beginPath();// new drawing "contex"
-  ctx.arc(x, y, radius, 0, 2 * Math.PI);// draw circle
-  ctx.stroke(); //update canvas
+
+function drawPoint(x, y, radius=10){ // draw cross at x, y
+  drawLine(x+radius, y, x-radius, y); // down to up
+  drawLine(x, y+radius, x, y-radius); // right to left
 }
+
 
 function drawBorder(){
-  drawLine(0, 0, 0, canvas_h); //left
-  drawLine(0, canvas_h, canvas_w, canvas_h); //bottom
-  drawLine(canvas_w, canvas_h, canvas_w, 0); //right
-  drawLine(canvas_w, 0, 0, 0); //top
+  drawLine(0, 0, 0, canvas_h, false); //left
+  drawLine(0, canvas_h, canvas_w, canvas_h, false); //bottom
+  drawLine(canvas_w, canvas_h, canvas_w, 0, false); //right
+  drawLine(canvas_w, 0, 0, 0, false); //top
 }
+
 
 // change html element to output
 function output(txt, out=1){
@@ -71,6 +79,7 @@ function output(txt, out=1){
 
   document.getElementById(outputId).textContent = txt; //output txt
 }
+
 
 // when key is pressed
 document.addEventListener("keydown", function(e) {
@@ -138,6 +147,7 @@ document.addEventListener("keydown", function(e) {
 
 });
 
+
 // when key is released
 document.addEventListener("keyup", function(e) {
   if (e.which === 39){ //go right key
@@ -179,10 +189,12 @@ document.addEventListener("keyup", function(e) {
   //angl var
 });
 
+
 // -.- (no explanation needed)
 function degToRad(deg){
   return rad = deg * Math.PI / 180;
 }
+
 
 // "p" are arrays of 2 elements (x, y).
 function drawTriangle(p1, p2, p3){
@@ -190,6 +202,7 @@ function drawTriangle(p1, p2, p3){
   drawLine(p2[0], p2[1], p3[0], p3[1]);
   drawLine(p3[0], p3[1], p1[0], p1[1]);
 }
+
 
 // point is [x, y].
 function rotatePoint(point, angle, clockwise=true, center=[0,0]){
@@ -215,6 +228,7 @@ function rotatePoint(point, angle, clockwise=true, center=[0,0]){
   return [newX, newY];
 }
 
+
 // returns coords relative to cam
 function relToCam(point){ // point: (x, y, z)
   
@@ -236,21 +250,13 @@ function relToCam(point){ // point: (x, y, z)
   return [newX, newY, newZ];
 }
 
-var b = [10, 0, 0];
-
-
-
-var a = [[-100, -50], [150, 20], [100, 200]];
-
-drawTriangle(a[0], a[1], a[2]);
-
-rotate = 0
-
-a[0] = rotatePoint(a[0], rotate, true);
-a[1] = rotatePoint(a[1], rotate, true);
-a[2] = rotatePoint(a[2], rotate, true);
-
-drawTriangle(a[0], a[1], a[2]);
-
 
 drawBorder();
+drawPoint(0, 0, 2); // draw canvas' center
+
+/* rotate func works!
+var a = [-20, 50];
+var b = rotatePoint(a, 45, false);
+drawPoint(a[0], a[1]);
+drawPoint(b[0], b[1], 5);
+*/
