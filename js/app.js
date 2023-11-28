@@ -29,6 +29,8 @@ var cam_z = 0; // Player z coord.
 var p_alpha = 0; // Player alpha angle (right-left motion).
 var p_beta = 0; // Player beta angle (up-down motion).
 
+pos_decimals = 3 // Nb of decimals of precision in the pos coords.
+
 
 function drawLine(x1, y1, x2, y2, center = true){
   let balanceX = 0;
@@ -226,6 +228,46 @@ function rotatePoint(point, angle, clockwise=true, center=[0,0]){
   // new values for (x, y)
 
   return [newX, newY];
+}
+
+
+function rotateEuler(point, angle=0, axis=0){ // point=[x, y, z]
+  // math from: https://stackoverflow.com/questions/14607640/rotating-a-vector-in-3d-space/14609567#14609567 .
+  // axis: 0->X; 1->Y; 2->Z
+
+  angle = degToRad(angle);
+  X = point[0];
+  Y = point[1];
+  Z = point[2];
+
+  if (axis === 0){ // rotation along x axis.
+    // angle > 0 -> roll left
+    newX = X;
+    newY = Y*Math.cos(angle) - Z*Math.sin(angle);
+    newZ = Y*Math.sin(angle) + Z*Math.cos(angle);
+
+  } else if (axis === 1){ // rotation along y axis.
+    // angle > 0 -> pitch foward/down/dive
+    newX = X*Math.cos(angle) + Z*Math.sin(angle);
+    newY = Y;
+    newZ = -X*Math.sin(angle) + Z*Math.cos(angle);
+
+  } else { // rotation along z axis.
+    // angle > 0 -> yaw right/clockwise
+    newX = X*Math.cos(angle) - Y*Math.sin(angle);
+    newY = X*Math.sin(angle) + Y*Math.cos(angle);
+    newZ = Z;
+  }
+
+  precision = 10 ** pos_decimals;
+
+  newX = Math.round(newX * precision) / precision;
+  newY = Math.round(newY * precision) / precision;
+  newZ = Math.round(newZ * precision) / precision;
+
+  output(["newX:", newX, " | newY:", newY, " | newZ:", newZ], 5);
+
+  return [newX, newY, newZ];
 }
 
 
