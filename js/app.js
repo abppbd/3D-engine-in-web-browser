@@ -311,8 +311,8 @@ function perspectiveProj(point){ // point = [x, y, z]
   let xScreen = canvas_w/2 + xDif;
   let yScreen = canvas_h/2 - yDif;
 
-  /*Xscreen = Sx/2 + (PyF)/Px
-    Yscreen = Sy/2 - (PzF)/Px
+  /*Xscreen = Sx/2 + (Py*F)/Px
+    Yscreen = Sy/2 - (Pz*F)/Px
     Px/y/z: point pos along axis
     F: dist screen to player
     Sx/y: screen size*/
