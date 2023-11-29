@@ -242,21 +242,21 @@ function rotateEuler(point, angle=0, axis=0){ // point=[x, y, z]
   // axis: 0->X; 1->Y; 2->Z
   if (axis === 0){ // rotation along x axis.
     // angle > 0 -> roll left
-    let newX = X;
-    let newY = Y*Math.cos(angle) - Z*Math.sin(angle);
-    let newZ = Y*Math.sin(angle) + Z*Math.cos(angle);
+    newX = X;
+    newY = Y*Math.cos(angle) - Z*Math.sin(angle);
+    newZ = Y*Math.sin(angle) + Z*Math.cos(angle);
 
   } else if (axis === 1){ // rotation along y axis.
     // angle > 0 -> pitch foward/down/dive
-    let newX = X*Math.cos(angle) + Z*Math.sin(angle);
-    let newY = Y;
-    let newZ = -X*Math.sin(angle) + Z*Math.cos(angle);
+    newX = X*Math.cos(angle) + Z*Math.sin(angle);
+    newY = Y;
+    newZ = -X*Math.sin(angle) + Z*Math.cos(angle);
 
   } else { // rotation along z axis.
     // angle > 0 -> yaw right/clockwise
-    let newX = X*Math.cos(angle) - Y*Math.sin(angle);
-    let newY = X*Math.sin(angle) + Y*Math.cos(angle);
-    let newZ = Z;
+    newX = X*Math.cos(angle) - Y*Math.sin(angle);
+    newY = X*Math.sin(angle) + Y*Math.cos(angle);
+    newZ = Z;
   }
 
   let precision = 10 ** pos_decimals;
