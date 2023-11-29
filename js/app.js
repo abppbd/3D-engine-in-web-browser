@@ -29,7 +29,8 @@ var cam_z = 0; // Player z coord.
 var p_alpha = 0; // Player alpha angle (right-left motion).
 var p_beta = 0; // Player beta angle (up-down motion).
 
-pos_decimals = 3 // Nb of decimals of precision in the pos coords.
+pos_decimals = 3 // Nb of decimals for position precision.
+rot_decimals = 3 // Nb of decimals for rotation precision.
 
 
 function drawLine(x1, y1, x2, y2, center = true){
@@ -122,7 +123,7 @@ document.addEventListener("keydown", function(e) {
     keyDownLook_d = true;
   }
 
-// vv Turn camera vv
+  // vv Turn camera vv
   if (keyDownLook_r === true){
     p_alpha += 0.1;
   }
@@ -135,7 +136,12 @@ document.addEventListener("keydown", function(e) {
   if (keyDownLook_d === true){
     p_beta -= 0.1;
   }
-// ^^ Turn camera ^^
+  // ^^ Turn camera ^^
+
+  // Remove floating point errors.
+  let precision = 10 ** rot_decimals
+  p_alpha = Math.round(p_alpha * precision) / precision;
+  p_beta = Math.round(p_beta * precision) / precision;
 
   output(["key_front", keyDown_f, " |key_back", keyDown_b, " |key_right: ", keyDown_r, " |key_left: ", keyDown_l], 0);
   // pos var
@@ -259,8 +265,8 @@ function rotateEuler(point, angle=0, axis=0){ // point=[x, y, z]
     newZ = Z;
   }
 
+  // Remove floating point errors.
   let precision = 10 ** pos_decimals;
-
   newX = Math.round(newX * precision) / precision;
   newY = Math.round(newY * precision) / precision;
   newZ = Math.round(newZ * precision) / precision;
