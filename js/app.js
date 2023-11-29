@@ -233,13 +233,13 @@ function rotatePoint(point, angle, clockwise=true, center=[0,0]){
 
 function rotateEuler(point, angle=0, axis=0){ // point=[x, y, z]
   // math from: https://stackoverflow.com/questions/14607640/rotating-a-vector-in-3d-space/14609567#14609567 .
-  // axis: 0->X; 1->Y; 2->Z
 
   angle = degToRad(angle);
-  X = point[0];
-  Y = point[1];
-  Z = point[2];
+  let X = point[0];
+  let Y = point[1];
+  let Z = point[2];
 
+  // axis: 0->X; 1->Y; 2->Z
   if (axis === 0){ // rotation along x axis.
     // angle > 0 -> roll left
     newX = X;
@@ -259,7 +259,7 @@ function rotateEuler(point, angle=0, axis=0){ // point=[x, y, z]
     newZ = Z;
   }
 
-  precision = 10 ** pos_decimals;
+  let precision = 10 ** pos_decimals;
 
   newX = Math.round(newX * precision) / precision;
   newY = Math.round(newY * precision) / precision;
@@ -271,25 +271,22 @@ function rotateEuler(point, angle=0, axis=0){ // point=[x, y, z]
 }
 
 
-// returns coords relative to cam
+// returns coords relative to cam (cancel, pos & rotation offsets)
 function relToCam(point){ // point: (x, y, z)
   
   // cancel cam's translation
   let transX = point[0] - cam_x;
   let transY = point[1] - cam_y;
   let transZ = point[2] - cam_z;
-  
-  // cancel cam's rotation (alpha)
-  let alphaRot = rotatePoint([transX, transY], -p_alpha, true, [0, 0]);
-  let alphaX = alphaRot[0];
-  let newY = alphaRot[1];
-  
-  // cancel cam's rotation (beta)
-  let betaRot = rotatePoint([transZ, alphaX], -p_beta, true, [0, 0]);
-  let newZ = betaRot[0];
-  let newX = betaRot[1];
-  
-  return [newX, newY, newZ];
+  let local_pos = [transX, transY, transZ];
+
+  // cancel alpha cam rotation (yaw, z axis)
+  let alphaCancel = rotateEuler(local_pos, p_alpha, 2);
+
+  //cancel beta cam rotation (pitch, y axis)
+  let local_pos_dir = rotateEuler(alphaCancel, p_beta, 1);
+
+  return local_pos_dir;
 }
 
 
