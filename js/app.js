@@ -26,14 +26,16 @@ var keyDownLook_d = false;
 var cam_x = 0; // Player x coord.
 var cam_y = 0; // Player y coord.
 var cam_z = 0; // Player z coord.
+var screenDist = 5; // Dist
+
 var p_alpha = 0; // Player alpha angle (right-left motion).
 var p_beta = 0; // Player beta angle (up-down motion).
 
-pos_decimals = 3 // Nb of decimals for position precision.
-rot_decimals = 3 // Nb of decimals for rotation precision.
+const pos_decimals = 3 // Nb of decimals for position precision.
+const rot_decimals = 3 // Nb of decimals for rotation precision.
 
 
-function drawLine(x1, y1, x2, y2, center = true){
+function drawLine(x1, y1, x2, y2, center = false){
   let balanceX = 0;
   let balanceY = 0;
 
@@ -296,12 +298,28 @@ function relToCam(point){ // point: (x, y, z)
 }
 
 
+// Project 3D point onto the screen.
+function perspectiveProj(point){ // point = [x, y, z]
+  // get point relative to camera.
+  let localPoint = relToCam(point);
+
+  // distance from center.
+  let xDif = localPoint[1] * screenDist / localPoint[0];
+  let yDif = localPoint[2] * screenDist / localPoint[0];
+
+  // get canvas coords.
+  let xScreen = canvas_w/2 + xDif;
+  let yScreen = canvas_h/2 - yDif;
+
+  /*Xscreen = Sx/2 + (Py*F)/Px
+    Yscreen = Sy/2 - (Pz*F)/Px
+    Px/y/z: point pos along axis
+    F: dist screen to player
+    Sx/y: screen size*/
+
+  return [xScreen, yScreen];
+}
+
+
 drawBorder();
 drawPoint(0, 0, 2); // draw canvas' center
-
-/* rotate func works!
-var a = [-20, 50];
-var b = rotatePoint(a, 45, false);
-drawPoint(a[0], a[1]);
-drawPoint(b[0], b[1], 5);
-*/
