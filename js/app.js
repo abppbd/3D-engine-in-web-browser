@@ -284,7 +284,7 @@ function relToCam(point){ // point: (x, y, z)
   let alphaCancel = rotateEuler(local_pos, p_alpha, 2);
 
   //cancel beta cam rotation (pitch, y axis)
-  let local_pos_dir = rotateEuler(alphaCancel, p_alpha, 1);
+  let local_pos_dir = rotateEuler(alphaCancel, p_beta, 1);
 
   return local_pos_dir;
 }
