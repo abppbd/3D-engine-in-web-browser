@@ -157,7 +157,6 @@ document.addEventListener("keydown", function(e) {
 
   // Update screen
   screenUpdate();
-
 });
 
 
