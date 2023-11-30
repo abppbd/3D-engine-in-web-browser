@@ -155,6 +155,9 @@ document.addEventListener("keydown", function(e) {
   output(["beta", p_beta], 3);
   output(e.which,4);
 
+  // Update screen
+  screenUpdate();
+
 });
 
 
@@ -325,8 +328,7 @@ function screenUpdate(){
   let point = [5, 4, 1];
   let localPoint = relToCam(point);
   let screenPoint = perspectiveProj(localPoint);
-  
-  
+  drawPoint(screenPoint[0], screenPoint[1], 10);
 }
 
 drawBorder();
