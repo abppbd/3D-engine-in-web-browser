@@ -321,5 +321,13 @@ function perspectiveProj(point){ // point = [x, y, z]
 }
 
 
+function screenUpdate(){
+  let point = [5, 4, 1];
+  let localPoint = relToCam(point);
+  let screenPoint = perspectiveProj(localPoint);
+  
+  
+}
+
 drawBorder();
 drawPoint(0, 0, 2); // draw canvas' center
