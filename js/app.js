@@ -26,10 +26,13 @@ var keyDownLook_d = false;
 var cam_x = 0; // Player x coord.
 var cam_y = 0; // Player y coord.
 var cam_z = 0; // Player z coord.
-var screenDist = 5; // Dist
 
 var p_alpha = 0; // Player alpha angle (right-left motion).
 var p_beta = 0; // Player beta angle (up-down motion).
+
+var H_FOV = 90; // Horizontal Field Of View.
+var screenDist = FOVtoDist(H_FOV, canvas_w); // Dist screen player/cam
+screenDist = 5
 
 const pos_decimals = 3 // Nb of decimals for position precision.
 const rot_decimals = 3 // Nb of decimals for rotation precision.
@@ -127,16 +130,16 @@ document.addEventListener("keydown", function(e) {
 
   // vv Turn camera vv
   if (keyDownLook_r === true){
-    p_alpha += 0.1;
+    p_alpha += 1;
   }
   if (keyDownLook_l === true){
-    p_alpha -= 0.1;
+    p_alpha -= 1;
   }
   if (keyDownLook_u === true){
-    p_beta += 0.1;
+    p_beta += 1;
   }
   if (keyDownLook_d === true){
-    p_beta -= 0.1;
+    p_beta -= 1;
   }
   // ^^ Turn camera ^^
 
@@ -205,6 +208,13 @@ document.addEventListener("keyup", function(e) {
 // -.- (no explanation needed)
 function degToRad(deg){
   return rad = deg * Math.PI / 180;
+}
+
+
+// Get distance between player and screen.
+function FOVtoDist(FOV, screenLen=canvas_w){
+  let dist = screenLen/2 * Math.tan(FOV/2);
+  return dist;
 }
 
 
@@ -291,7 +301,7 @@ function relToCam(point){ // point: (x, y, z)
   let local_pos = [transX, transY, transZ];
 
   // cancel alpha cam rotation (yaw, z axis)
-  let alphaCancel = rotateEuler(local_pos, p_alpha, 2);
+  let alphaCancel = rotateEuler(local_pos, -p_alpha, 2);
 
   //cancel beta cam rotation (pitch, y axis)
   let local_pos_dir = rotateEuler(alphaCancel, p_beta, 1);
@@ -302,12 +312,9 @@ function relToCam(point){ // point: (x, y, z)
 
 // Project 3D point onto the screen.
 function perspectiveProj(point){ // point = [x, y, z]
-  // get point relative to camera.
-  let localPoint = relToCam(point);
-
   // distance from center.
-  let xDif = localPoint[1] * screenDist / localPoint[0];
-  let yDif = localPoint[2] * screenDist / localPoint[0];
+  let xDif = point[1] * screenDist / point[0];
+  let yDif = point[2] * screenDist / point[0];
 
   // get canvas coords.
   let xScreen = canvas_w/2 + xDif;
@@ -323,11 +330,22 @@ function perspectiveProj(point){ // point = [x, y, z]
 }
 
 
+// Update th screen (not cleared).
 function screenUpdate(){
-  let point = [5, 4, 1];
+  let point = [2, 0, 0];
+
+  // get point rel to camera
   let localPoint = relToCam(point);
+
+  // project point to screen
   let screenPoint = perspectiveProj(localPoint);
-  drawPoint(screenPoint[0], screenPoint[1], 10);
+
+  if (localPoint[0] > 0){
+    // render only if in front
+    drawPoint(screenPoint[0], screenPoint[1], 10);
+  }
+  console.log(localPoint, screenPoint);
+  return;
 }
 
 drawBorder();
