@@ -6,6 +6,14 @@ JSON Structure:
 For rendering points:
 
 [shape1(a), shape2(a)...]
++-shape: [Id(n), name(s), *color(h)*, type(s), points(a)]
+| +-points: [p1(a), p2(a)...]
+| | +-p: [*color(h)*, coords(a)]
+| | | +-coords: [x(n), y(n), z(n)]
+
+
+
+[shape1(a), shape2(a)...]
  V
  [Id(n), name(s), *color(h)*, type(s), points(a)]
                                        v--------
@@ -27,7 +35,7 @@ For rendering edges:
   [*color(h)*, coords(a)]                   [*color(h)*, points(s)]
                v--------                                 v-----
        [x(n), y(n), z(n)]                               "p1-p2"
-                                                        (points index in
+                                                        (points index)
 
 
 
