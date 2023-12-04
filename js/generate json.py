@@ -7,7 +7,9 @@ JSON Structure:
 For rendering points:
 
 [shape1(a), shape2(a)...]
- +--shape: [Id(n), name(s), type(s), render(b), load(b), *color(h)*, points(a)]
+ +--shape: [Id(n), name(s), type(s), render(b), poistion(a), points(a), *color(h)*]
+ |  +--poistion: [x, y, z]
+ |  |
  |  +--points: [p1(a), p2(a)...]
  |  |  +--p: [*color(h)*, coords(a)]
  |  |  |  +--coords: [x(n), y(n), z(n)]
@@ -16,7 +18,9 @@ For rendering points:
 For rendering edges:
 
 [shape1(a), shape2(a)...]
- +--shape: [Id(n), name(s), type(s), render(b), load(b), *color(h)*, points(a), edges(a)]
+ +--shape: [Id(n), name(s), type(s), render(b), position(a), points(a), edges(a), *color(h)*]
+ |  +--poistion: [x, y, z]
+ |  |
  |  +--points: [p1(a), p2(a)...]
  |  |  +--p: [*color(h)*, coords(a)]
  |  |  |  +--coords: [x(n), y(n), z(n)]
