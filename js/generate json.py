@@ -1,3 +1,5 @@
+
+
 # Script generating json file to store geometry data
 # for the 3Dengine JavaScript.
 
@@ -61,7 +63,7 @@ Description:
             optional color override from the shape's color.
         note: Only draws triangular faces.
 - color(h): shape's points/edges/faces colors as hex value (#012345), if no
-    color is given it defaults back to white.
+    color is given it will default back to black.
 """
 
 cube = {"Id" : 0,
@@ -116,27 +118,22 @@ cube = {"Id" : 0,
                     "color" : "#0000FF"},
                    {"front2" : [2, 3, 0],
                     "color" : "#0000FF"},
-                   
                    {"back1" : [4, 5, 6], # Back face (-x)
                     "color" : "#00FF00"},
                    {"back2" : [6, 7, 4],
                     "color" : "#00FF00"},
-                   
                    {"top1" : [0, 1, 5], # Top face (+z)
                     "color" : "#FF0000"},
                    {"top2" : [5, 4, 0],
                     "color" : "#FF0000"},
-                   
                    {"left1" : [1, 2, 5], # Left face (-y)
                     "color" : "#00FFFF"},
                    {"left2" : [5, 6, 1],
                     "color" : "#00FFFF"},
-                   
                    {"right1" : [0, 4, 3], # Right face (+y)
                     "color" : "#FFFF00"},
                    {"right2" : [3, 7, 4],
                     "color" : "#FFFF00"},
-                   
                    {"bottom1" : [2, 3, 7], # Bottom face (-Z)
                     "color" : "#FF00FF"},
                    {"bottom2" : [7, 6, 2],
