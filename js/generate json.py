@@ -1,4 +1,4 @@
-
+from json import dump
 
 # Script generating json file to store geometry data
 # for the 3Dengine JavaScript.
@@ -65,7 +65,10 @@ Description:
 - color(h): shape's points/edges/faces colors as hex value (#012345), if no
     color is given it will default back to black.
 """
-
+# --------------------------------------------------------------------------- #
+json_file_dir = "geometry.json" # Output file.
+# --------------------------------------------------------------------------- #
+# Shapes geometry & color data.
 cube = {"Id" : 0,
         "name" : "cube",
         "mode" : "p",
@@ -139,3 +142,12 @@ cube = {"Id" : 0,
                    {"bottom2" : [7, 6, 2],
                     "color" : "#FF00FF"}]
        }
+# --------------------------------------------------------------------------- #
+shapesToEncode = [cube] # list of the shapes to encode.
+
+user_input = input("The data in {json_file_dir} will be replaced by {shapesToEncode}, do you wish to continue (y/n)?")
+if user_input == "y":
+    with open(json_file_dir, "w") as json_file:
+        json_str = dump(shapesToEncode)
+        json_file.write(json_str)
+                   
