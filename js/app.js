@@ -37,6 +37,25 @@ screenDist = 5
 const pos_decimals = 3 // Nb of decimals for position precision.
 const rot_decimals = 3 // Nb of decimals for rotation precision.
 
+const geometryFile = "geometry.json"
+
+
+function loadGeometry (fileName){
+  let json = require(geometryFile) // Get file.
+  
+  let toRender = [] // Init the shapes to render.
+  
+  for (let i = 0; i < json.length; i++) {
+    // Loop over everyshapes in json.
+    
+    if (json[i]["render"] === true){
+      // if "Render" proprety is true add to list.
+      toRender.push(json[i])
+    }
+  }
+  return toRender
+}
+
 
 function drawLine(x1, y1, x2, y2, center = false){
   let balanceX = 0;
