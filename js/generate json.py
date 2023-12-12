@@ -1,4 +1,4 @@
-from json import dump
+from json import dumps
 
 # Script generating json file to store geometry data
 # for the 3Dengine JavaScript.
@@ -143,11 +143,17 @@ cube = {"Id" : 0,
                     "color" : "#FF00FF"}]
        }
 # --------------------------------------------------------------------------- #
-shapesToEncode = [cube] # list of the shapes to encode.
+shapesToEncode = {"cube" : cube} # list of the shapes to encode.
 
+# User confiramation.
 user_input = input("The data in {json_file_dir} will be replaced by {shapesToEncode}, do you wish to continue (y/n)?")
+
 if user_input == "y":
+    # If yes proceed.
     with open(json_file_dir, "w") as json_file:
-        json_str = dump(shapesToEncode)
-        json_file.write(json_str)
+        json_str = dumps(shapesToEncode) # Dict to json str.
+        json_file.write(json_str) # Write to file
+        print("Done.")
+else:
+    print("No confirmation given, canceling.")
                    
