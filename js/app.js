@@ -32,12 +32,12 @@ var p_beta = 0; // Player beta angle (up-down motion).
 
 var H_FOV = 90; // Horizontal Field Of View.
 var screenDist = FOVtoDist(H_FOV, canvas_w); // Dist screen player/cam
-screenDist = 5
+screenDist = 5;
 
-const pos_decimals = 3 // Nb of decimals for position precision.
-const rot_decimals = 3 // Nb of decimals for rotation precision.
+const pos_decimals = 3; // Nb of decimals for position precision.
+const rot_decimals = 3; // Nb of decimals for rotation precision.
 
-const geometryFile = "geometry.json"
+const geometryFile = "geometry.json";
 
 
 function loadGeometry (fileName){
@@ -50,10 +50,10 @@ function loadGeometry (fileName){
     
     if (json[i]["render"] === true){
       // if "Render" proprety is true add to list.
-      toRender.push(json[i])
+      toRender.push(json[i]);
     }
   }
-  return toRender
+  return toRender;
 }
 
 
