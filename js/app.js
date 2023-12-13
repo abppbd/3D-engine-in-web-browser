@@ -38,17 +38,17 @@ const pos_decimals = 3; // Nb of decimals for position precision.
 const rot_decimals = 3; // Nb of decimals for rotation precision.
 
 const geometryFile = "geometry.json";
+var json = FileReader
+// https://stackoverflow.com/a/14446538
 const toRender = loadGeometry(geometryFile);
 
 
 function loadGeometry (fileName){
-  let json = require(fileName); //Get file.
-  
+  var json = $.getJSON("test.json").responseText;
   let toRender = [] // Init the shapes to render.
-  
+
   for (let i = 0; i < json.length; i++) {
     // Loop over everyshapes in json.
-    
     if (json[i]["render"]){
       // if "Render" proprety is true add to list.
       toRender.push(json[i]);
@@ -351,10 +351,13 @@ function perspectiveProj(point){ // point = [x, y, z]
 
 
 function renderPoints(geometry){
-  if (geometry["mode"].includes("p")
+  if (geometry["mode"].includes("p")){
+    console.log(geometry["name"]);
+  }
 }
 
-// Update th screen (not cleared).
+/*
+// Update the screen (not cleared).
 function screenUpdate(){
   let point = [2, 0, 0];
 
@@ -371,6 +374,7 @@ function screenUpdate(){
   console.log(localPoint, screenPoint);
   return;
 }
+*/
 
 drawBorder();
 drawPoint(0, 0, 2); // draw canvas' center
