@@ -37,10 +37,10 @@ screenDist = 5;
 const pos_decimals = 3; // Nb of decimals for position precision.
 const rot_decimals = 3; // Nb of decimals for rotation precision.
 
-const geometryFile = "file:///C:/Users/lucamorriello/Documents/3Dengine/js/geometry.json";
-var json = "placeholder"
+//const geometryFile = "file:///C:/Users/lucamorriello/Documents/3Dengine/js/geometry.json";
+//var json = "placeholder"
 // https://stackoverflow.com/a/14446538
-const toRender = loadGeometry(geometryFile);
+const toRender = loadJSON();
 
 
 function loadGeometry (fileName){
@@ -51,10 +51,7 @@ function loadGeometry (fileName){
     // do something with "text"
     })
 
-
-
   let toRender = [] // Init the shapes to render.
-
   for (let i = 0; i < json.length; i++) {
     // Loop over everyshapes in json.
     if (json[i]["render"]){
@@ -238,6 +235,13 @@ function degToRad(deg){
 }
 
 
+function distPoints (p1, p2){ // Get dist between 2 points in 3D.
+  let rel = [p1[0] - p2[0], p1[1] - p2[1], p1[2] - p2[2]];
+  let dist = Math.sqrt(rel[0]**2 + rel[1]**2 + rel[2]**2);
+  return dist;
+}
+
+
 // Get distance between player and screen.
 function FOVtoDist(FOV, screenLen=canvas_w){
   let dist = screenLen/2 * Math.tan(FOV/2);
@@ -357,88 +361,35 @@ function perspectiveProj(point){ // point = [x, y, z]
 }
 
 
+// Render vertecies.
 function renderPoints(geometry){
-  if (geometry["mode"].includes("p")){
-    console.log(geometry["name"]);
+  console.log("Rendering Points of:", geometry["name"]);
+
+  let player_pos = [cam_x, cam_y, cam_z];
+
+  for (let index = 0; index < geomery["points"].lenght; index++) {
+    // Loop over every vertex.
+
+    // Get vertex pos in global space by adding shape's pos to the vertex.
+    let globalPoint = geomery["points"][index].map(function (vert, idx) {
+      return vert + player_pos[idx];
+    });
+
+    // Project on screen.
+    let screenImg = perspectiveProj(globalPoint);
+
+    // Get dist from cam to vertex.
+    let dist = distPoints(player_pos, globalPoint);
+    
+    // Set size to lower with dist increasing up to 1.
+    let size = 20 - dist;
+    if (size > 19){
+      size = 1;
+    }
+
+    // Render Vertex.
+    drawPoint(screenImg[0], screenImg[1], radius=size);
   }
-}
-
-
-function loadJSON(){
-  cube = {"Id" : 0,
-          "name" : "cube",
-          "mode" : "p",
-          "render" : True,
-          "position" : [0, 0, 0],
-          "rotation" : [0, 0],
-          "points" : [{"point" : [5,5,5],
-                       "color" : "#F00000"},
-                      {"point" : [5,-5,5],
-                       "color" : "#0F0000"},
-                      {"point" : [5,-5,-5],
-                     "color" : "#00F000"},
-                    {"point" : [5,5,-5],
-                     "color" : "#000F00"},
-                    {"point" : [-5,5,5],
-                     "color" : "#F000FF"},
-                    {"point" : [-5,-5,5],
-                     "color" : "#0F00FF"},
-                    {"point" : [-5,-5,-5],
-                     "color" : "#00F0FF"},
-                    {"point" : [-5,5,-5],
-                     "color" : "#000FFF"}],
-        
-        "edges" : [{"edge" : [0,1],
-                    "color" : "#00FF00"},
-                   {"edge" : [1,2],
-                    "color" : "#00FF00"},
-                   {"edge" : [2,3],
-                    "color" : "#00FF00"},
-                   {"edge" : [3,0],
-                    "color" : "#00FF00"},
-                   {"edge" : [4,5],
-                    "color" : "#00FF00"},
-                   {"edge" : [5,6],
-                    "color" : "#00FF00"},
-                   {"edge" : [6,7],
-                    "color" : "#00FF00"},
-                   {"edge" : [7,4],
-                    "color" : "#00FF00"},
-                   {"edge" : [0,4],
-                    "color" : "#00FF00"},
-                   {"edge" : [1,5],
-                    "color" : "#00FF00"},
-                   {"edge" : [2,6],
-                    "color" : "#00FF00"},
-                   {"edge" : [3,7],
-                    "color" : "#00FF00"}],
-        
-        "faces" : [{"front1" : [0, 1, 2], # Front face (+x)
-                    "color" : "#0000FF"},
-                   {"front2" : [2, 3, 0],
-                    "color" : "#0000FF"},
-                   {"back1" : [4, 5, 6], # Back face (-x)
-                    "color" : "#00FF00"},
-                   {"back2" : [6, 7, 4],
-                    "color" : "#00FF00"},
-                   {"top1" : [0, 1, 5], # Top face (+z)
-                    "color" : "#FF0000"},
-                   {"top2" : [5, 4, 0],
-                    "color" : "#FF0000"},
-                   {"left1" : [1, 2, 5], # Left face (-y)
-                    "color" : "#00FFFF"},
-                   {"left2" : [5, 6, 1],
-                    "color" : "#00FFFF"},
-                   {"right1" : [0, 4, 3], # Right face (+y)
-                    "color" : "#FFFF00"},
-                   {"right2" : [3, 7, 4],
-                    "color" : "#FFFF00"},
-                   {"bottom1" : [2, 3, 7], # Bottom face (-Z)
-                    "color" : "#FF00FF"},
-                   {"bottom2" : [7, 6, 2],
-                    "color" : "#FF00FF"}]
-       };
-  let asJSON = JSON.stringify([cube]);
 }
 
 
@@ -464,3 +415,83 @@ function screenUpdate(){
 
 drawBorder();
 drawPoint(0, 0, 2); // draw canvas' center
+
+
+
+function loadJSON(){
+  cube = {"Id" : 0,
+          "name" : "cube",
+          "mode" : "p",
+          "render" : True,
+          "position" : [0, 0, 0],
+          "rotation" : [0, 0],
+          "points" : [{"point" : [5,5,5],
+                       "color" : "#F00000"},
+                      {"point" : [5,-5,5],
+                       "color" : "#0F0000"},
+                      {"point" : [5,-5,-5],
+                       "color" : "#00F000"},
+                      {"point" : [5,5,-5],
+                       "color" : "#000F00"},
+                      {"point" : [-5,5,5],
+                       "color" : "#F000FF"},
+                      {"point" : [-5,-5,5],
+                       "color" : "#0F00FF"},
+                      {"point" : [-5,-5,-5],
+                       "color" : "#00F0FF"},
+                      {"point" : [-5,5,-5],
+                       "color" : "#000FFF"}],
+
+          "edges" : [{"edge" : [0,1],
+                      "color" : "#00FF00"},
+                     {"edge" : [1,2],
+                      "color" : "#00FF00"},
+                     {"edge" : [2,3],
+                      "color" : "#00FF00"},
+                     {"edge" : [3,0],
+                      "color" : "#00FF00"},
+                     {"edge" : [4,5],
+                      "color" : "#00FF00"},
+                     {"edge" : [5,6],
+                      "color" : "#00FF00"},
+                     {"edge" : [6,7],
+                      "color" : "#00FF00"},
+                     {"edge" : [7,4],
+                      "color" : "#00FF00"},
+                     {"edge" : [0,4],
+                      "color" : "#00FF00"},
+                     {"edge" : [1,5],
+                      "color" : "#00FF00"},
+                     {"edge" : [2,6],
+                      "color" : "#00FF00"},
+                     {"edge" : [3,7],
+                      "color" : "#00FF00"}],
+
+          "faces" : [{"front1" : [0, 1, 2], // Front face (+x)
+                      "color" : "#0000FF"},
+                     {"front2" : [2, 3, 0],
+                      "color" : "#0000FF"},
+                     {"back1" : [4, 5, 6], // Back face (-x)
+                      "color" : "#00FF00"},
+                     {"back2" : [6, 7, 4],
+                      "color" : "#00FF00"},
+                     {"top1" : [0, 1, 5], // Top face (+z)
+                      "color" : "#FF0000"},
+                     {"top2" : [5, 4, 0],
+                      "color" : "#FF0000"},
+                     {"left1" : [1, 2, 5], // Left face (-y)
+                      "color" : "#00FFFF"},
+                     {"left2" : [5, 6, 1],
+                      "color" : "#00FFFF"},
+                     {"right1" : [0, 4, 3], // Right face (+y)
+                      "color" : "#FFFF00"},
+                     {"right2" : [3, 7, 4],
+                      "color" : "#FFFF00"},
+                     {"bottom1" : [2, 3, 7], // Bottom face (-Z)
+                      "color" : "#FF00FF"},
+                     {"bottom2" : [7, 6, 2],
+                      "color" : "#FF00FF"}]
+         };
+  let asJSON = JSON.stringify([cube]);
+  return asJSON;
+}
