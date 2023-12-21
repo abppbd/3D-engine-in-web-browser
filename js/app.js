@@ -85,6 +85,11 @@ function drawLine(x1, y1, x2, y2, center = false){
 }
 
 
+function clearCanvas(){
+  ctx.clearRect(0, 0, canvas_w, canvas_h);
+}
+
+
 function drawPoint(x, y, radius=10){ // draw cross at x, y
   drawLine(x+radius, y, x-radius, y); // down to up
   drawLine(x, y+radius, x, y-radius); // right to left
@@ -184,6 +189,9 @@ document.addEventListener("keydown", function(e) {
   output(e.which,4);
 
   // Update screen
+  clearCanvas();
+  drawBorder();
+  renderPoints(toRender);
 });
 
 
@@ -363,25 +371,22 @@ function perspectiveProj(point){ // point = [x, y, z]
 
 // Render vertecies.
 function renderPoints(geometry){
-  for (let shapeIdx = 0; shapeIdx < Object.keys(geometry).length; shapeIdx++) {
+  for (const shapeIdx in geometry) {
     // Loop over every shape.
 
     let shape = geometry[shapeIdx];
 
-    console.log("Rendering Points of:", shape["name"]);
-
     let cam_pos = [cam_x, cam_y, cam_z];
-    
-    console.log(Array.isArray(shape["points"]), Object.keys(shape["points"]).length);
 
     let vertIdx = 0;
-    for (const point in shape["points"]) {
+    for (const vertIdx in shape["points"]) {
       // Loop over every vertex and generate their index.
 
-      console.log("Rendering vertex:", shape["points"], point);
+      // Get local vertex coordinates.
+      let localPoint = shape["points"][vertIdx]["point"]
 
       // Get vertex pos in global space by adding shape's pos to the vertex.
-      let globalPoint = point["point"].map(function (vert, idx) {
+      let globalPoint = localPoint.map(function (vert, idx) {
         return vert + cam_pos[idx];
       });
 
@@ -389,15 +394,13 @@ function renderPoints(geometry){
       let screenImg = perspectiveProj(globalPoint);
 
       // Get dist from cam to vertex.
-      let dist = distPoints(player_pos, globalPoint);
+      let dist = distPoints(cam_pos, globalPoint);
 
       // Get size from dist, clamped between 1 and 20.
       let size = Math.max(Math.min(20, 10 - dist), 1);
 
       // Render Vertex.
       drawPoint(screenImg[0], screenImg[1], radius=size);
-
-      vertIdx++;
     }
   }
   return "Done.";
