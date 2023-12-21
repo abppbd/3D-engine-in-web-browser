@@ -363,33 +363,44 @@ function perspectiveProj(point){ // point = [x, y, z]
 
 // Render vertecies.
 function renderPoints(geometry){
-  console.log("Rendering Points of:", geometry["name"]);
+  for (let shapeIdx = 0; shapeIdx < Object.keys(geometry).length; shapeIdx++) {
+    // Loop over every shape.
 
-  let player_pos = [cam_x, cam_y, cam_z];
+    let shape = geometry[shapeIdx];
 
-  for (let index = 0; index < geomery["points"].lenght; index++) {
-    // Loop over every vertex.
+    console.log("Rendering Points of:", shape["name"]);
 
-    // Get vertex pos in global space by adding shape's pos to the vertex.
-    let globalPoint = geomery["points"][index].map(function (vert, idx) {
-      return vert + player_pos[idx];
-    });
-
-    // Project on screen.
-    let screenImg = perspectiveProj(globalPoint);
-
-    // Get dist from cam to vertex.
-    let dist = distPoints(player_pos, globalPoint);
+    let cam_pos = [cam_x, cam_y, cam_z];
     
-    // Set size to lower with dist increasing up to 1.
-    let size = 20 - dist;
-    if (size > 19){
-      size = 1;
-    }
+    console.log(Array.isArray(shape["points"]), Object.keys(shape["points"]).length);
 
-    // Render Vertex.
-    drawPoint(screenImg[0], screenImg[1], radius=size);
+    let vertIdx = 0;
+    for (const point in shape["points"]) {
+      // Loop over every vertex and generate their index.
+
+      console.log("Rendering vertex:", shape["points"], point);
+
+      // Get vertex pos in global space by adding shape's pos to the vertex.
+      let globalPoint = point["point"].map(function (vert, idx) {
+        return vert + cam_pos[idx];
+      });
+
+      // Project on screen.
+      let screenImg = perspectiveProj(globalPoint);
+
+      // Get dist from cam to vertex.
+      let dist = distPoints(player_pos, globalPoint);
+
+      // Get size from dist, clamped between 1 and 20.
+      let size = Math.max(Math.min(20, 10 - dist), 1);
+
+      // Render Vertex.
+      drawPoint(screenImg[0], screenImg[1], radius=size);
+
+      vertIdx++;
+    }
   }
+  return "Done.";
 }
 
 
@@ -422,7 +433,7 @@ function loadJSON(){
   cube = {"Id" : 0,
           "name" : "cube",
           "mode" : "p",
-          "render" : True,
+          "render" : true,
           "position" : [0, 0, 0],
           "rotation" : [0, 0],
           "points" : [{"point" : [5,5,5],
@@ -492,6 +503,9 @@ function loadJSON(){
                      {"bottom2" : [7, 6, 2],
                       "color" : "#FF00FF"}]
          };
-  let asJSON = JSON.stringify([cube]);
-  return asJSON;
+  let fullGeom = [cube]//JSON.parse([cube]);
+  return fullGeom;
 }
+
+
+renderPoints(toRender)
