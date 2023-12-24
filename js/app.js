@@ -44,23 +44,6 @@ var json = "placeholder"
 */
 
 
-function hexToRGB(hexStr){ //hex = "#123ABC" -> rgb = (18, 58, 188).
-  let RGB = []
-  for (let idx = 1; idx === 3; idx = idx+3){
-    let hex = hexStr.slice(idx, idx+1)
-    let chanel = parseInt(hex, 16)
-    RGB.push(chanel)
-  }/*
-  let hexR = hexStr.slice(1, 3) // Ignore the "#".
-  let hexG = hexStr.slice(4, 6)
-  let hexB = hexStr.slice(7, 9)
-  let R = parseInt(hexR, 16)
-  let G = parseInt(hexR, 16)
-  let B = parseInt(hexR, 16)
-  return (R, G, B)*/
-}
-
-
 function drawLine(x1, y1, x2, y2, center=false, color="#000000"){
   let balanceX = 0
   let balanceY = 0
@@ -75,9 +58,17 @@ function drawLine(x1, y1, x2, y2, center=false, color="#000000"){
   x2 = parseInt(x2 + balanceX)
   y1 = parseInt(y1 + balanceY)
   y2 = parseInt(y2 + balanceY)
+  
+  if (typeof color === "string"){
+    color = hexToRGB(color) // Convert if color is a str.
+  } else if (Array.isArray(color)){
+    // Assuming that the Array given is RGB.
+    console.log("The color parameter takes a str or an array.")
+  }
+  
+  ctx.strokeStyle = color//.slice(-6) // Def color (and remove the leading "#")
 
   ctx.beginPath() //New drawing "context"
-  ctx.strokeStyle = color // def color
   ctx.moveTo(x1, y1) //line start
   ctx.lineTo(x2, y2) //line end
   ctx.stroke() //update canvas
@@ -517,3 +508,24 @@ function loadJSON(){
 
 
 renderPoints(toRender)
+
+
+
+
+
+// Legacy.
+function hexToRGB(hexStr){ //hex = "#123ABC" -> rgb = (18, 58, 188).
+  let RGB = []
+  for (let idx = 1; idx === 3; idx = idx+3){
+    let hex = hexStr.slice(idx, idx+1)
+    let chanel = parseInt(hex, 16)
+    RGB.push(chanel)
+  }/*
+  let hexR = hexStr.slice(1, 3) // Ignore the "#".
+  let hexG = hexStr.slice(4, 6)
+  let hexB = hexStr.slice(7, 9)
+  let R = parseInt(hexR, 16)
+  let G = parseInt(hexR, 16)
+  let B = parseInt(hexR, 16)*/
+return RGB
+}
