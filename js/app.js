@@ -44,20 +44,8 @@ var json = "placeholder"
 */
 
 
-function hexToRGB(hexStr){ //hex = "#123ABC" -> rgb = (18, 58, 188).
-  let RGB = []
-  for (let idx = 1; idx === 3; idx = idx+3){
-    let hex = hexStr.slice(idx, idx+1)
-    let chanel = parseInt(hex, 16)
-    RGB.push(chanel)
-  }/*
-  let hexR = hexStr.slice(1, 3) // Ignore the "#".
-  let hexG = hexStr.slice(4, 6)
-  let hexB = hexStr.slice(7, 9)
-  let R = parseInt(hexR, 16)
-  let G = parseInt(hexR, 16)
-  let B = parseInt(hexR, 16)
-  return (R, G, B)*/
+function clearCanvas(){
+  ctx.clearRect(0, 0, canvas_w, canvas_h)
 }
 
 
@@ -75,23 +63,25 @@ function drawLine(x1, y1, x2, y2, center=false, color="#000000"){
   x2 = parseInt(x2 + balanceX)
   y1 = parseInt(y1 + balanceY)
   y2 = parseInt(y2 + balanceY)
+  
+  if (typeof color != "string"){
+  // Assuming the Str given is the hex color.
+    console.log("The color parameter takes a str or an array.")
+  }
+  
+  ctx.strokeStyle = color // Def stroke color.
 
   ctx.beginPath() //New drawing "context"
-  ctx.strokeStyle = color // def color
   ctx.moveTo(x1, y1) //line start
   ctx.lineTo(x2, y2) //line end
   ctx.stroke() //update canvas
 }
 
 
-function clearCanvas(){
-  ctx.clearRect(0, 0, canvas_w, canvas_h)
-}
-
-
 function drawPoint(x, y, radius=10, color="#000000"){ // draw cross at x, y
-  drawLine(x+radius, y, x-radius, y, color) // down to up
-  drawLine(x, y+radius, x, y-radius, color) // right to left
+  drawLine(x+radius, y, x-radius, y, true, color) // down to up
+  drawLine(x, y+radius, x, y-radius, true, color) // right to left
+  console.log(x,y)
 }
 
 
@@ -350,11 +340,11 @@ function relToCam(point){ // point: (x, y, z)
 
 // Project 3D point onto the screen.
 function perspectiveProj(point){ // point = [x, y, z]
-  // distance from center.
+  // Distance from center.
   let xDif = point[1] * screenDist / point[0]
   let yDif = point[2] * screenDist / point[0]
 
-  // get canvas coords.
+  // Get canvas coords. (Relative to the screen's center)
   let xScreen = canvas_w/2 + xDif
   let yScreen = canvas_h/2 - yDif
 
@@ -517,3 +507,18 @@ function loadJSON(){
 
 
 renderPoints(toRender)
+
+
+
+
+/* // Legacy.
+function hexToRGB(hexStr){ //hex = "#123ABC" -> rgb = (18, 58, 188).
+  let RGB = []
+  for (let idx = 1; idx === 3; idx = idx+3){
+    let hex = hexStr.slice(idx, idx+1)
+    let chanel = parseInt(hex, 16)
+    RGB.push(chanel)
+  }
+  return RGB
+}
+*/
