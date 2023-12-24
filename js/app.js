@@ -5,7 +5,7 @@
   - z: up/down
 */
 
-var StopAll = false
+var StopAll = false;
 
 //canvas init
 const canvas = document.getElementById("canvas");
@@ -37,33 +37,31 @@ screenDist = 5;
 const pos_decimals = 3; // Nb of decimals for position precision.
 const rot_decimals = 3; // Nb of decimals for rotation precision.
 
-//const geometryFile = "file:///C:/Users/lucamorriello/Documents/3Dengine/js/geometry.json";
-//var json = "placeholder"
-// https://stackoverflow.com/a/14446538
 const toRender = loadJSON();
+/*const geometryFile = "file:///C:/Users/lucamorriello/Documents/3Dengine/js/geometry.json";
+var json = "placeholder"
+// https://stackoverflow.com/a/14446538
+*/
 
 
-function loadGeometry (fileName){
-  fetch(fileName)
-    .then((res) => res.text())
-    .then((text) => {
-      console.log(text)
-    // do something with "text"
-    })
-
-  let toRender = [] // Init the shapes to render.
-  for (let i = 0; i < json.length; i++) {
-    // Loop over everyshapes in json.
-    if (json[i]["render"]){
-      // if "Render" proprety is true add to list.
-      toRender.push(json[i]);
-    }
-  }
-  return toRender;
+function hexToRGB(hexStr){ //hex = "#123ABC" -> rgb = (18, 58, 188).
+  let RGB = [];
+  for (let idx = 1; idx === 3; idx = idx+3){
+    let hex = hexStr.slice(idx, idx+1);
+    let chanel = parseInt(hex, 16);
+    RGB.push(chanel)
+  }/*
+  let hexR = hexStr.slice(1, 3); // Ignore the "#".
+  let hexG = hexStr.slice(4, 6);
+  let hexB = hexStr.slice(7, 9);
+  let R = parseInt(hexR, 16);
+  let G = parseInt(hexR, 16);
+  let B = parseInt(hexR, 16);
+  return (R, G, B)*/
 }
 
 
-function drawLine(x1, y1, x2, y2, center = false){
+function drawLine(x1, y1, x2, y2, center=false, color="#000000"){
   let balanceX = 0;
   let balanceY = 0;
 
@@ -79,6 +77,7 @@ function drawLine(x1, y1, x2, y2, center = false){
   y2 = parseInt(y2 + balanceY);
 
   ctx.beginPath(); //New drawing "context"
+  ctx.strokeStyle = color; // def color
   ctx.moveTo(x1, y1); //line start
   ctx.lineTo(x2, y2); //line end
   ctx.stroke(); //update canvas
@@ -90,9 +89,9 @@ function clearCanvas(){
 }
 
 
-function drawPoint(x, y, radius=10){ // draw cross at x, y
-  drawLine(x+radius, y, x-radius, y); // down to up
-  drawLine(x, y+radius, x, y-radius); // right to left
+function drawPoint(x, y, radius=10, color="#000000"){ // draw cross at x, y
+  drawLine(x+radius, y, x-radius, y, color); // down to up
+  drawLine(x, y+radius, x, y-radius, color); // right to left
 }
 
 
@@ -399,8 +398,14 @@ function renderPoints(geometry){
       // Get size from dist, clamped between 1 and 20.
       let size = Math.max(Math.min(20, 10 - dist), 1);
 
+      // Get point color (black if none given).
+      let color = "#000000"
+      if ("color" in shape["points"][vertIdx]){
+        color = shape["points"][vertIdx]["color"];
+      }
+
       // Render Vertex.
-      drawPoint(screenImg[0], screenImg[1], radius=size);
+      drawPoint(screenImg[0], screenImg[1], radius=size, color);
     }
   }
   return "Done.";
@@ -427,9 +432,9 @@ function screenUpdate(){
 }
 */
 
+
 drawBorder();
 drawPoint(0, 0, 2); // draw canvas' center
-
 
 
 function loadJSON(){
