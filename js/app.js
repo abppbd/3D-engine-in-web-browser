@@ -549,18 +549,3 @@ function loadJSON(){
 
 
 renderPoints(toRender)
-
-
-
-
-/* // Legacy.
-function hexToRGB(hexStr){ //hex = "#123ABC" -> rgb = (18, 58, 188).
-  let RGB = []
-  for (let idx = 1; idx === 3; idx = idx+3){
-    let hex = hexStr.slice(idx, idx+1)
-    let chanel = parseInt(hex, 16)
-    RGB.push(chanel)
-  }
-  return RGB
-}
-*/
