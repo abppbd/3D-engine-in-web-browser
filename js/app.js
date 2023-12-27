@@ -32,7 +32,7 @@ var p_beta = 0 // Player beta angle (up-down motion).
 
 var H_FOV = 90 // Horizontal Field Of View.
 var screenDist = FOVtoDist(H_FOV, canvas_w) // Dist screen player/cam
-screenDist = 5
+screenDist = 90
 
 const pos_decimals = 3 // Nb of decimals for position precision.
 const rot_decimals = 3 // Nb of decimals for rotation precision.
@@ -66,7 +66,7 @@ function drawLine(x1, y1, x2, y2, center=false, color="#000000"){
   
   if (typeof color != "string"){
   // Assuming the Str given is the hex color.
-    console.log("The color parameter takes a str or an array.")
+    //console.log("The color parameter takes a str or an array.")
   }
   
   ctx.strokeStyle = color // Def stroke color.
@@ -81,7 +81,7 @@ function drawLine(x1, y1, x2, y2, center=false, color="#000000"){
 function drawPoint(x, y, radius=10, color="#000000"){ // draw cross at x, y
   drawLine(x+radius, y, x-radius, y, true, color) // down to up
   drawLine(x, y+radius, x, y-radius, true, color) // right to left
-  console.log(x,y)
+  //console.log(x,y)
 }
 
 
@@ -112,7 +112,7 @@ function output(txt, out=1){
 document.addEventListener("keydown", function(e) {
   if (e.which === 13){ // Stop all when "enter" is pressed
     StopAll = true
-    throw 'Script stoped.'
+    throw 'Script stoped. (not really cuz it s not implemented yet)'
   }
 
   if (e.which === 39){ //go right key
@@ -161,6 +161,28 @@ document.addEventListener("keydown", function(e) {
     p_beta -= 1
   }
   // ^^ Turn camera ^^
+
+  // Clamping: 0 < p_alpha < 360
+  p_alpha = modulo(p_alpha, 360)
+
+  // Clamping: 0 < p_beta < 360
+  p_beta = modulo(p_beta, 360)
+  
+  
+  // VV move cam VV
+  if (keyDown_b){
+    cam_x -= 3
+  }
+  if (keyDown_f){
+    cam_x += 3
+  }
+  if (keyDown_l){
+    cam_y -= 3
+  }
+  if (keyDown_r){
+    cam_y += 3
+  }
+  // ^^ move cam ^^
 
   // Remove floating point errors.
   let precision = 10 ** rot_decimals
@@ -224,6 +246,12 @@ document.addEventListener("keyup", function(e) {
   output(["key_LU", keyDownLook_u, " |key_LD", keyDownLook_d, " |key_LR", keyDownLook_r, " |key_LL", keyDownLook_l], 1)
   //angl var
 })
+
+// Moduo operation using the floored division.
+function modulo(a, n) {
+  // The result has the sign as the divisor.
+	return a - (n * Math.floor(a/n))
+}
 
 
 // -.- (no explanation needed)
@@ -338,15 +366,23 @@ function relToCam(point){ // point: (x, y, z)
 }
 
 
-// Project 3D point onto the screen.
+// Project 3D point onto the screen. (canvas center is 0,0)
 function perspectiveProj(point){ // point = [x, y, z]
+  // Assuming Coords have been made local to the camera.
+  // aka: Projecting on the YZ plane (X axis is front/back)
+
   // Distance from center.
-  let xDif = point[1] * screenDist / point[0]
-  let yDif = point[2] * screenDist / point[0]
+  let xDif = 0
+  let yDif = 0
+
+  if (point[0] != 0){
+    xDif = point[1] * screenDist / point[0]
+    yDif = point[2] * screenDist / point[0]
+  }
 
   // Get canvas coords. (Relative to the screen's center)
-  let xScreen = canvas_w/2 + xDif
-  let yScreen = canvas_h/2 - yDif
+  //let xScreen = canvas_w/2 + xDif
+  //let yScreen = canvas_h/2 - yDif
 
   /*Xscreen = Sx/2 + (Py*F)/Px
     Yscreen = Sy/2 - (Pz*F)/Px
@@ -354,7 +390,8 @@ function perspectiveProj(point){ // point = [x, y, z]
     F: dist screen to player
     Sx/y: screen size*/
 
-  return [xScreen, yScreen]
+  // return [xScreen, yScreen]
+  return [xDif, yDif]
 }
 
 
@@ -364,38 +401,43 @@ function renderPoints(geometry){
     // Loop over every shape.
 
     let shape = geometry[shapeIdx]
+    //console.log(shape)
 
-    let cam_pos = [cam_x, cam_y, cam_z]
-
-    let vertIdx = 0
+    //let vertIdx = 0
     for (const vertIdx in shape["points"]) {
       // Loop over every vertex and generate their index.
 
-      // Get local vertex coordinates.
+      // Get local vertex coordinates. (relative to the sape's origin)
       let localPoint = shape["points"][vertIdx]["point"]
 
-      // Get vertex pos in global space by adding shape's pos to the vertex.
-      let globalPoint = localPoint.map(function (vert, idx) {
-        return vert + cam_pos[idx]
+      // // Get vertex pos in global space by adding shape's pos to the vertex.
+      let globalPoint = shape["position"].map(function (axis, idx){
+        return shape["points"][vertIdx]["point"][idx] + axis
       })
 
+      // Set coords relative to cam.
+      let relPoint = relToCam(globalPoint)
+      //console.log("dawing vertex at", globalPoint, "rel to cam", relPoint, "w/ color", shape["points"][vertIdx]["color"])
+
       // Project on screen.
-      let screenImg = perspectiveProj(globalPoint)
+      let screenImg = perspectiveProj(relPoint)
 
       // Get dist from cam to vertex.
-      let dist = distPoints(cam_pos, globalPoint)
+      let dist = distPoints([cam_x, cam_y, cam_z], relPoint)
 
       // Get size from dist, clamped between 1 and 20.
-      let size = Math.max(Math.min(20, 10 - dist), 1)
+      let size = Math.max(20 - dist, 1)
 
       // Get point color (black if none given).
       let color = "#000000"
       if ("color" in shape["points"][vertIdx]){
         color = shape["points"][vertIdx]["color"]
       }
+      
+      //console.log("proj on screen is", screenImg, "w/ size,", size)
 
       // Render Vertex.
-      drawPoint(screenImg[0], screenImg[1], radius=size, color)
+      drawPoint(screenImg[0], screenImg[1], radius=4, color)
     }
   }
   return "Done."
@@ -432,7 +474,7 @@ function loadJSON(){
           "name" : "cube",
           "mode" : "p",
           "render" : true,
-          "position" : [0, 0, 0],
+          "position" : [15, 0, 0],
           "rotation" : [0, 0],
           "points" : [{"point" : [5,5,5],
                        "color" : "#F00000"},
@@ -449,7 +491,7 @@ function loadJSON(){
                       {"point" : [-5,-5,-5],
                        "color" : "#00F0FF"},
                       {"point" : [-5,5,-5],
-                       "color" : "#000FFF"}],
+                       "color" : "#000FFF"}], //1st seen!
 
           "edges" : [{"edge" : [0,1],
                       "color" : "#00FF00"},
