@@ -410,7 +410,7 @@ function renderPoints(geometry){
       // Get local vertex coordinates. (relative to the sape's origin)
       let localPoint = shape["points"][vertIdx]["point"]
 
-      // // Get vertex pos in global space by adding shape's pos to the vertex.
+      // Get vertex pos in global space by adding shape's pos to the vertex.
       let globalPoint = shape["position"].map(function (axis, idx){
         return shape["points"][vertIdx]["point"][idx] + axis
       })
@@ -443,6 +443,26 @@ function renderPoints(geometry){
   return "Done."
 }
 
+
+// Render edges.
+function renderEdges(geometry){
+  for (const shapeIdx in geometry){
+    // Loop over every shape.
+
+    let shape = geometry[shapeIdx]
+    for (edgeIdx in shape["edges"]){
+      // Loop over every edges and generate their index.
+
+      // Get the edge's vetices index.
+      let p1 = shape["edges"][edgeIdx]["edge"][0]
+      let p2 = shape["edges"][edgeIdx]["edge"][1]
+      
+      let p1GlobalPos = shape["position"].map(function (axis, idx){
+        return shape["points"][p1]["point"][idx] + axis
+      })
+    }
+  }
+}
 
 /*
 // Update the screen (not cleared).
