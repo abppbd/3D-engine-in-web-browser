@@ -31,8 +31,8 @@ var p_alpha = 0 // Player alpha angle (right-left motion).
 var p_beta = 0 // Player beta angle (up-down motion).
 
 var H_FOV = 90 // Horizontal Field Of View.
-var screenDist = FOVtoDist(H_FOV, canvas_w) // Dist screen player/cam
-screenDist = 90
+var screenDist = 179 //FOVtoDist(H_FOV, canvas_w) // Dist screen to player/cam.
+var camPlaneClip = 0 // Min dist from cam for rendering.
 
 const pos_decimals = 3 // Nb of decimals for position precision.
 const rot_decimals = 3 // Nb of decimals for rotation precision.
@@ -203,6 +203,7 @@ document.addEventListener("keydown", function(e) {
   clearCanvas()
   drawBorder()
   renderPoints(toRender)
+  renderEdges(toRender)
 })
 
 
@@ -314,6 +315,10 @@ function rotateEuler(point, angle=0, axis=0){ // point=[x, y, z]
   let X = point[0]
   let Y = point[1]
   let Z = point[2]
+  
+  let newX = undefined
+  let newY = undefined
+  let newZ = undefined
 
   // axis: 0->X; 1->Y; 2->Z
   if (axis === 0){ // rotation along x axis.
@@ -341,7 +346,7 @@ function rotateEuler(point, angle=0, axis=0){ // point=[x, y, z]
   newY = Math.round(newY * precision) / precision
   newZ = Math.round(newZ * precision) / precision
 
-  output(["newX:", newX, " | newY:", newY, " | newZ:", newZ], 5)
+  //output(["newX:", newX, " | newY:", newY, " | newZ:", newZ], 5)
 
   return [newX, newY, newZ]
 }
@@ -375,7 +380,7 @@ function perspectiveProj(point){ // point = [x, y, z]
   let xDif = 0
   let yDif = 0
 
-  if (point[0] != 0){
+  if (point[0] != 0){ // Avoid divisio by 0.
     xDif = point[1] * screenDist / point[0]
     yDif = point[2] * screenDist / point[0]
   }
@@ -392,6 +397,27 @@ function perspectiveProj(point){ // point = [x, y, z]
 
   // return [xScreen, yScreen]
   return [xDif, yDif]
+}
+
+
+// Check if a point is in front of the camera. (use after applying relToCam)
+function isInFront(point, planeCliping = camPlaneClip){ // point = [x, y, z]
+  return point[0] - planeCliping > 0
+}
+
+
+// Check if a projected point is on screen.
+function inFOV(point){ // point = [x, y]
+  let w_min = -canvas_w/2
+  let w_max = canvas_w/2
+  let h_min = -canvas_h/2
+  let , h_max = canvas_h/2
+
+  if ((w_min < point[0] < w_max) & (h_min < point[1] < h_max)){
+    return true
+  } else {
+    return false
+  }
 }
 
 
@@ -419,28 +445,28 @@ function renderPoints(geometry){
       let relPoint = relToCam(globalPoint)
       //console.log("dawing vertex at", globalPoint, "rel to cam", relPoint, "w/ color", shape["points"][vertIdx]["color"])
 
-      // Project on screen.
-      let screenImg = perspectiveProj(relPoint)
+      if (isInFront(relPoint)){ // If point is in FOV.
+        // Project on screen.
+        let screenImg = perspectiveProj(relPoint)
 
-      // Get dist from cam to vertex.
-      let dist = distPoints([cam_x, cam_y, cam_z], relPoint)
+        // Get dist from cam to vertex.
+        let dist = distPoints([cam_x, cam_y, cam_z], relPoint)
 
-      // Get size from dist, clamped between 1 and 20.
-      let size = Math.max(20 - dist, 1)
+        // Get size from dist, clamped between 1 and 20.
+        let size = Math.max(20 - dist, 1)
 
-      // Get point color (black if none given).
-      let color = "#000000"
-      if ("color" in shape["points"][vertIdx]){
-        color = shape["points"][vertIdx]["color"]
+        // Get point color (black if none given).
+        let color = "#000000"
+        if ("color" in shape["points"][vertIdx]){
+          color = shape["points"][vertIdx]["color"]
+        }
+
+        // Render Vertex.
+        drawPoint(screenImg[0], screenImg[1], radius=4, color)
       }
-      
-      //console.log("proj on screen is", screenImg, "w/ size,", size)
-
-      // Render Vertex.
-      drawPoint(screenImg[0], screenImg[1], radius=4, color)
     }
   }
-  return "Done."
+  return
 }
 
 
@@ -456,12 +482,37 @@ function renderEdges(geometry){
       // Get the edge's vetices index.
       let p1 = shape["edges"][edgeIdx]["edge"][0]
       let p2 = shape["edges"][edgeIdx]["edge"][1]
-      
-      let p1GlobalPos = shape["position"].map(function (axis, idx){
+
+      // Get vertex pos in global space by adding shape's pos to the vertex.
+      let p1Global = shape["position"].map(function (axis, idx){
         return shape["points"][p1]["point"][idx] + axis
       })
+      let p2Global = shape["position"].map(function (axis, idx){
+        return shape["points"][p2]["point"][idx] + axis
+      })
+
+      // Set coords relative to cam.
+      let p1Rel = relToCam(p1Global)
+      let p2Rel = relToCam(p2Global)
+
+      if ((isInFront(p1Rel) || isInFront(p2Rel))){
+        // If one of the points is in FOV.
+
+        // Project on screen.
+        let p1Screen = perspectiveProj(p1Rel)
+        let p2Screen = perspectiveProj(p2Rel)
+
+        // Get point color (black if none given).
+        let color = "#000000"
+        if ("color" in shape["edges"][edgeIdx]){
+          color = shape["edges"][edgeIdx]["color"]
+        }
+
+        drawLine(p1Screen[0], p1Screen[1], p2Screen[0], p2Screen[1], true, color)
+      }
     }
   }
+  return
 }
 
 /*
@@ -528,7 +579,7 @@ function loadJSON(){
                      {"edge" : [6,7],
                       "color" : "#00FF00"},
                      {"edge" : [7,4],
-                      "color" : "#00FF00"},
+                      "color" : "#FFFF00"},
                      {"edge" : [0,4],
                       "color" : "#00FF00"},
                      {"edge" : [1,5],
@@ -569,3 +620,4 @@ function loadJSON(){
 
 
 renderPoints(toRender)
+renderEdges(toRender)
