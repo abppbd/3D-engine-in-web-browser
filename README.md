@@ -4,7 +4,7 @@ A small<sub>[1]</sub> project to create a 3D rendering engine in a web browser u
 
 At first only doing wire mesh rendering, and then full polygons drawings!
 
-credits to [Not the Future](https://www.youtube.com/@notthefuture1881) with their series [3D Engine Coding](https://www.youtube.com/playlist?list=PLUvk3cvE4qoYjYuQdCIdnxRUThX63PFhk) which directly inspired this project (I ripped off the idea but not the code, it's all by me, I stopped at ep.3)
+credits to [Not the Future](https://www.youtube.com/@notthefuture1881) with their series [3D Engine Coding](https://www.youtube.com/playlist?list=PLUvk3cvE4qoYjYuQdCIdnxRUThX63PFhk) which directly inspired this project (I ripped off the idea but not the code, it's all by me, I stopped at ep.3 for doing this project)
 
 <sub>
   [1]: 2 months later and it doesn't seem so small anymore.</br>
