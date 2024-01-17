@@ -28,9 +28,9 @@ var cam_y = 0 // Player y coord.
 var cam_z = 0 // Player z coord.
 
 var p_alpha = 0 // Player alpha angle (right-left motion).
-var p_beta = 0 // Player beta angle (up-down motion).
+var p_beta = 0  // Player beta angle (up-down motion).
 
-var H_FOV = 90 // Horizontal Field Of View.
+var H_FOV = 90       // Horizontal Field Of View.
 var screenDist = 179 //FOVtoDist(H_FOV, canvas_w) // Dist screen to player/cam.
 var camPlaneClip = 0 // Min dist from cam for rendering.
 
@@ -56,31 +56,44 @@ function compensateFlipScreen(x, y){
 
 
 function drawLine(x1, y1, x2, y2, center=false, color="#000000"){
+
+  // Screen (0, 0) is canvas top left corner.
   let balanceX = 0
   let balanceY = 0
-
-  if (center){ // set canvas' center as 0, 0
+  if (center){
+    // Get canvas' center's coords.
     balanceX = canvas_w / 2
     balanceY = canvas_h / 2
+
+    // Get points coords rel to top left corner
+    x1 += balanceX
+    x2 += balanceX
+    y1 += balanceY
+    y2 += balanceY
   }
-  
-  // get coords (rel to center) as int
-  x1 = parseInt(x1 + balanceX)
-  x2 = parseInt(x2 + balanceX)
-  y1 = parseInt(y1 + balanceY)
-  y2 = parseInt(y2 + balanceY)
+
+  // Ints required to draw on canvas.
+  x1 = parseInt(x1)
+  x2 = parseInt(x2)
+  y1 = parseInt(y1)
+  y2 = parseInt(y2)
+
+  // Compensate Scrren flip:
+  // Transform (0,0) from the top left to the bottom left corner.
+  y1 = canvas_h - y1
+  y2 = canvas_h - y2
   
   if (typeof color != "string"){
-  // Assuming the Str given is the hex color.
+    // Assuming the Str given is the hex color.
     //console.log("The color parameter takes a str or an array.")
   }
   
   ctx.strokeStyle = color // Def stroke color.
 
-  ctx.beginPath() //New drawing "context"
+  ctx.beginPath()    //New drawing "context"
   ctx.moveTo(x1, y1) //line start
   ctx.lineTo(x2, y2) //line end
-  ctx.stroke() //update canvas
+  ctx.stroke()       //update canvas
 }
 
 
