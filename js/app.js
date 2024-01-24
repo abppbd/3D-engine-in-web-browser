@@ -400,7 +400,8 @@ function perspectiveProj(point, conpensateSign=true, debug = false){ // point = 
   let xDif = 0
   let yDif = 0
 
-  if (point[0] != 0){ // Avoid divisio by 0.
+  if (point[0] != 0){ // If a point isn't on the YZ plane of the cam.
+    // Avoid division by 0.
     xDif = point[1] * screenDist / point[0]
     yDif = point[2] * screenDist / point[0]
   }
@@ -413,22 +414,35 @@ function perspectiveProj(point, conpensateSign=true, debug = false){ // point = 
   Sx/y: screen size
   */
 
-  // /!\ The projection method flips screen coords if the point is behind cam
-  //     so a value that sould be positive will be negative and vice versa.
-  if ((point[0] < 0) & conpensateSign){
+  // /!\ The projection method flips (x,y) screen coords if the point is behind
+  //     cam so a value that sould be positive will be negative and vice versa.
+  if (point[0] < 0){
     // If point is behind cam & compensateSign is true.
-    if (debug){console.log(point, "xDif:", xDif, "|yDif:", yDif)}
 
-    // Compensate for the sign invertion.
-    //xDif = -xDif
-    //yDif = -yDif
-    xDif = canvas_w
-    yDif = canvas_h
-    if (xDif < 0) {
-      xDif = -canvas_w
+    // Print debug info if debug is true.
+    if (debug){console.log(point, "xDif:", xDif, "|yDif:", yDif)}
+    
+    if (conpensateSign){
+      // Compensate for the sign invertion.
+      xDif = -xDif
+      yDif = -yDif
     }
-    if (yDif < 0) {
-      yDif = -canvas_h
+
+    // If a point is behind cam it should be rendered out of FOV
+    // An edge from in front to behind the cam will go of screen
+
+    output("CALCULATE CORRECTLY THE PROJECTIO FOR POINTS BEHIND CAM!",5)
+    
+    if (xDif > 0) {
+      xDif += canvas_w/2
+    } else if (xDif < 0){
+      xDif -= canvas_w/2
+    }
+
+    if (yDif > 0) {
+      yDif += canvas_h/2
+    } else if (yDif < 0){
+      yDif -= canvas_h/2
     }
   }
 
@@ -582,7 +596,7 @@ function loadJSON(){
     "name" : "cube",
     "mode" : "p",
     "render" : true,
-    "position" : [15, 5, 5],
+    "position" : [15, 5, 0],
     "rotation" : [0, 0],
     "points" : [
       {"point" : [5,5,5],
