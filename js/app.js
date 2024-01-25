@@ -13,15 +13,19 @@ const ctx = canvas.getContext("2d")
 const canvas_h = canvas.height
 const canvas_w  = canvas.width
 
-// keydown init
-var keyDown_r = false
-var keyDown_l = false
-var keyDown_f = false
-var keyDown_b = false
-var keyDownLook_r = false
-var keyDownLook_l = false
-var keyDownLook_u = false
-var keyDownLook_d = false
+// Mvmt keydown init.
+var keyDown_u = false // Mv up.
+var keyDown_d = false // Mv down.
+var keyDown_r = false // Mv right.
+var keyDown_l = false // Mv left.
+var keyDown_f = false // Mv foward.
+var keyDown_b = false // Mv backward.
+
+// Look keydown init.
+var keyDownLook_r = false // Lk right.
+var keyDownLook_l = false // Lk left.
+var keyDownLook_u = false // Lk up.
+var keyDownLook_d = false // Lk down.
 
 var cam_x = 0 // Player x coord.
 var cam_y = 0 // Player y coord.
@@ -150,6 +154,14 @@ document.addEventListener("keydown", function(e) {
     keyDown_b = true
   }
 
+  if (e.which == 82){ //go up key
+    keyDown_u = true
+  }
+
+  if (e.which == 70){ //go down key
+    keyDown_d = true
+  }
+
   if (e.which == 68){ //look right key
     keyDownLook_r = true
   }
@@ -186,8 +198,8 @@ document.addEventListener("keydown", function(e) {
 
   // Clamping: 0 < p_beta < 360
   p_beta = modulo(p_beta, 360)
-  
-  
+
+
   // VV move cam VV
   if (keyDown_b){
     cam_x -= 3
@@ -200,6 +212,12 @@ document.addEventListener("keydown", function(e) {
   }
   if (keyDown_r){
     cam_y += 3
+  }
+  if (keyDown_u){
+    cam_z += 3
+  }
+  if (keyDown_d){
+    cam_z -= 3
   }
   // ^^ move cam ^^
 
@@ -245,6 +263,14 @@ document.addEventListener("keyup", function(e) {
     keyDown_b = false
   }
 
+  if (e.which == 82){ //go up key
+    keyDown_u = false
+  }
+
+  if (e.which == 70){ //go down key
+    keyDown_d = false
+  }
+
   if (e.which == 68){ //look right key
     keyDownLook_r = false
   }
@@ -270,7 +296,7 @@ document.addEventListener("keyup", function(e) {
 
 // Moduo operation using the floored division.
 function modulo(a, n) {
-  // The result has the sign as the divisor.
+  // The result has the sign of the divisor.
 	return a - (n * Math.floor(a/n))
 }
 
@@ -431,7 +457,7 @@ function perspectiveProj(point, conpensateSign=true, debug = false){ // point = 
     // If a point is behind cam it should be rendered out of FOV
     // An edge from in front to behind the cam will go of screen
 
-    output("CALCULATE CORRECTLY THE PROJECTIO FOR POINTS BEHIND CAM!",5)
+    output("CALCULATE CORRECTLY THE PROJECTION FOR POINTS BEHIND CAM!",5)
     
     if (xDif > 0) {
       xDif += canvas_w/2
@@ -596,7 +622,7 @@ function loadJSON(){
     "name" : "cube",
     "mode" : "p",
     "render" : true,
-    "position" : [15, 5, 0],
+    "position" : [15, 5, -3],
     "rotation" : [0, 0],
     "points" : [
       {"point" : [5,5,5],
