@@ -31,12 +31,17 @@ var cam_x = 0 // Player x coord.
 var cam_y = 0 // Player y coord.
 var cam_z = 0 // Player z coord.
 
+// Step size along each axis.
+var moveX = 3
+var moveY = 3
+var moveZ = 3
+
 var p_alpha = 0 // Player alpha angle (right-left motion).
 var p_beta = 0  // Player beta angle (up-down motion).
 
 var H_FOV = 90       // Horizontal Field Of View.
 var screenDist = 179 //FOVtoDist(H_FOV, canvas_w) // Dist screen to player/cam.
-var camPlaneClip = 0 // Min dist from cam for rendering.
+var camPlaneClip = 3 // Min dist from cam for rendering.
 
 const pos_decimals = 3 // Nb of decimals for position precision.
 const rot_decimals = 3 // Nb of decimals for rotation precision.
@@ -202,29 +207,36 @@ document.addEventListener("keydown", function(e) {
 
   // VV move cam VV
   if (keyDown_b){
-    cam_x -= 3
+    cam_x -= moveX
   }
   if (keyDown_f){
-    cam_x += 3
+    cam_x += moveX
   }
   if (keyDown_l){
-    cam_y -= 3
+    cam_y -= moveY
   }
   if (keyDown_r){
-    cam_y += 3
+    cam_y += moveY
   }
   if (keyDown_u){
-    cam_z += 3
+    cam_z += moveZ
   }
   if (keyDown_d){
-    cam_z -= 3
+    cam_z -= moveZ
   }
   // ^^ move cam ^^
 
-  // Remove floating point errors.
-  let precision = 10 ** rot_decimals
-  p_alpha = Math.round(p_alpha * precision) / precision
-  p_beta = Math.round(p_beta * precision) / precision
+  // Remove floating point errors from cam angles.
+  let rotPrecision = 10 ** rot_decimals
+  p_alpha = Math.round(p_alpha * rotPrecision) / rotPrecision
+  p_beta = Math.round(p_beta * rotPrecision) / rotPrecision
+
+  // Remove floating point errors from cam pos.
+  let posPrecision = 10 ** pos_decimals
+  cam_x = Math.round(cam_x * posPrecision) / posPrecision
+  cam_y = Math.round(cam_y * posPrecision) / posPrecision
+  cam_z = Math.round(cam_z * posPrecision) / posPrecision
+
 
   output(["key_front", keyDown_f, " |key_back", keyDown_b, " |key_right: ", keyDown_r, " |key_left: ", keyDown_l], 0)
   // pos var
@@ -502,43 +514,47 @@ function renderPoints(geometry){
   for (const shapeIdx in geometry) {
     // Loop over every shape.
 
-    let shape = geometry[shapeIdx]
-    //console.log(shape)
+    if (geometry[shapeIdx]["mode"].includes("p")){
+      // If the shape has point mode active.
 
-    //let vertIdx = 0
-    for (const vertIdx in shape["points"]) {
-      // Loop over every vertex and generate their index.
-
-      // Get local vertex coordinates. (relative to the sape's origin)
-      let localPoint = shape["points"][vertIdx]["point"]
-
-      // Get vertex pos in global space by adding shape's pos to the vertex.
-      let globalPoint = shape["position"].map(function (axis, idx){
-        return shape["points"][vertIdx]["point"][idx] + axis
-      })
-
-      // Set coords relative to cam.
-      let relPoint = relToCam(globalPoint)
-      //console.log("dawing vertex at", globalPoint, "rel to cam", relPoint, "w/ color", shape["points"][vertIdx]["color"])
-
-      if (isInFront(relPoint)){ // If point is in FOV.
-        // Project on screen.
-        let screenImg = perspectiveProj(relPoint)
-
-        // Get dist from cam to vertex.
-        let dist = distPoints([cam_x, cam_y, cam_z], relPoint)
-
-        // Get size from dist, clamped between 1 and 20.
-        let size = Math.max(20 - dist, 1)
-
-        // Get point color (black if none given).
-        let color = "#000000"
-        if ("color" in shape["points"][vertIdx]){
-          color = shape["points"][vertIdx]["color"]
+      let shape = geometry[shapeIdx]
+      //console.log(shape)
+  
+      //let vertIdx = 0
+      for (const vertIdx in shape["points"]) {
+        // Loop over every vertex and generate their index.
+  
+        // Get local vertex coordinates. (relative to the sape's origin)
+        let localPoint = shape["points"][vertIdx]["point"]
+  
+        // Get vertex pos in global space by adding shape's pos to the vertex.
+        let globalPoint = shape["position"].map(function (axis, idx){
+          return shape["points"][vertIdx]["point"][idx] + axis
+        })
+  
+        // Set coords relative to cam.
+        let relPoint = relToCam(globalPoint)
+        //console.log("dawing vertex at", globalPoint, "rel to cam", relPoint, "w/ color", shape["points"][vertIdx]["color"])
+  
+        if (isInFront(relPoint)){ // If point is in FOV.
+          // Project on screen.
+          let screenImg = perspectiveProj(relPoint)
+  
+          // Get dist from cam to vertex.
+          let dist = distPoints([cam_x, cam_y, cam_z], relPoint)
+  
+          // Get size from dist, clamped between 1 and 20.
+          let size = Math.max(20 - dist, 1)
+  
+          // Get point color (black if none given).
+          let color = "#000000"
+          if ("color" in shape["points"][vertIdx]){
+            color = shape["points"][vertIdx]["color"]
+          }
+  
+          // Render Vertex.
+          drawPoint(screenImg[0], screenImg[1], radius=4, color)
         }
-
-        // Render Vertex.
-        drawPoint(screenImg[0], screenImg[1], radius=4, color)
       }
     }
   }
@@ -551,40 +567,44 @@ function renderEdges(geometry){
   for (const shapeIdx in geometry){
     // Loop over every shape.
 
-    let shape = geometry[shapeIdx]
-    for (edgeIdx in shape["edges"]){
-      // Loop over every edges and generate their index.
+    if (geometry[shapeIdx]["mode"].includes("e")){
+      // If the shape has edge mode active.
 
-      // Get the edge's vetices index.
-      let p1 = shape["edges"][edgeIdx]["edge"][0]
-      let p2 = shape["edges"][edgeIdx]["edge"][1]
+      let shape = geometry[shapeIdx]
+      for (edgeIdx in shape["edges"]){
+        // Loop over every edges and generate their index.
 
-      // Get vertex pos in global space by adding shape's pos to the vertex.
-      let p1Global = shape["position"].map(function (axis, idx){
-        return shape["points"][p1]["point"][idx] + axis
-      })
-      let p2Global = shape["position"].map(function (axis, idx){
-        return shape["points"][p2]["point"][idx] + axis
-      })
+        // Get the edge's vetices index.
+        let p1 = shape["edges"][edgeIdx]["edge"][0]
+        let p2 = shape["edges"][edgeIdx]["edge"][1]
 
-      // Set coords relative to cam.
-      let p1Rel = relToCam(p1Global)
-      let p2Rel = relToCam(p2Global)
+        // Get vertex pos in global space by adding shape's pos to the vertex.
+        let p1Global = shape["position"].map(function (axis, idx){
+          return shape["points"][p1]["point"][idx] + axis
+        })
+        let p2Global = shape["position"].map(function (axis, idx){
+          return shape["points"][p2]["point"][idx] + axis
+        })
 
-      if ((isInFront(p1Rel) || isInFront(p2Rel))){
-        // If one of the points is in FOV.
-
-        // Project on screen.
-        let p1Screen = perspectiveProj(p1Rel, conpensateSign=true, true)
-        let p2Screen = perspectiveProj(p2Rel, conpensateSign=true, true)
-
-        // Get point color (black if none given).
-        let color = "#000000"
-        if ("color" in shape["edges"][edgeIdx]){
-          color = shape["edges"][edgeIdx]["color"]
+        // Set coords relative to cam.
+        let p1Rel = relToCam(p1Global)
+        let p2Rel = relToCam(p2Global)
+  
+        if ((isInFront(p1Rel) || isInFront(p2Rel))){
+          // If one of the points is in FOV.
+  
+          // Project on screen.
+          let p1Screen = perspectiveProj(p1Rel, conpensateSign=true, debug=false)
+          let p2Screen = perspectiveProj(p2Rel, conpensateSign=true, debug=false)
+  
+          // Get point color (black if none given).
+          let color = "#000000"
+          if ("color" in shape["edges"][edgeIdx]){
+            color = shape["edges"][edgeIdx]["color"]
+          }
+  
+          drawLine(p1Screen[0], p1Screen[1], p2Screen[0], p2Screen[1], true, color)
         }
-
-        drawLine(p1Screen[0], p1Screen[1], p2Screen[0], p2Screen[1], true, color)
       }
     }
   }
@@ -617,12 +637,12 @@ drawPoint(0, 0, 5) // draw canvas' center
 
 
 function loadJSON(){
-  cube = {
+  let cube1 = {
     "Id" : 0,
     "name" : "cube",
-    "mode" : "p",
+    "mode" : "pe",
     "render" : true,
-    "position" : [15, 5, -3],
+    "position" : [0, 0, 0],
     "rotation" : [0, 0],
     "points" : [
       {"point" : [5,5,5],
@@ -697,7 +717,14 @@ function loadJSON(){
        "color" : "#FF00FF"}
     ]
   }
-  let fullGeom = [cube]//JSON.parse([cube])
+
+  let cube2 = Object.assign({},cube1) // Make a copy of cube1.
+  cube2["position"] = [10, 0, 0]    // Change cube2's pos.
+
+  console.log(cube1)
+  console.log(cube2)
+
+  let fullGeom = [cube1, cube2]//JSON.parse([cube])
   return fullGeom
 }
 
