@@ -18,7 +18,7 @@ var keyDown_u = false // Mv up.
 var keyDown_d = false // Mv down.
 var keyDown_r = false // Mv right.
 var keyDown_l = false // Mv left.
-var keyDown_f = false // Mv foward.
+var keyDown_f = false // Mv forward.
 var keyDown_b = false // Mv backward.
 
 // Look keydown init.
@@ -31,13 +31,16 @@ var cam_x = 0 // Player x coord.
 var cam_y = 0 // Player y coord.
 var cam_z = 0 // Player z coord.
 
-// Step size along each axis.
-var moveX = 3
-var moveY = 3
-var moveZ = 3
+// Step size along each axis (rel to player alpha angle).
+var moveX = 3 // forward/back.
+var moveY = 3 // right/left.
+var moveZ = 3 // up/down.
 
 var p_alpha = 0 // Player alpha angle (right-left motion).
 var p_beta = 0  // Player beta angle (up-down motion).
+
+var rotAlpha = 1 // Player alpha angle step.
+var rotBeta = 1  // Player beta angle step.
 
 var H_FOV = 90       // Horizontal Field Of View.
 var screenDist = 179 //FOVtoDist(H_FOV, canvas_w) // Dist screen to player/cam.
@@ -136,176 +139,6 @@ function output(txt, out=1){
 }
 
 
-// when key is pressed
-document.addEventListener("keydown", function(e) {
-  if (e.which == 13){ // Stop all when "enter" is pressed
-    StopAll = true
-    throw 'Script stoped. (not really cuz it s not implemented yet)'
-  }
-
-  if (e.which == 39){ //go right key
-    keyDown_r = true
-  }
-
-  if (e.which == 37){ //go left key
-    keyDown_l = true
-  }
-
-  if (e.which == 38){ //go forward key
-    keyDown_f = true
-  }
-
-  if (e.which == 40){ //go backward key
-    keyDown_b = true
-  }
-
-  if (e.which == 82){ //go up key
-    keyDown_u = true
-  }
-
-  if (e.which == 70){ //go down key
-    keyDown_d = true
-  }
-
-  if (e.which == 68){ //look right key
-    keyDownLook_r = true
-  }
-
-  if (e.which == 81){ //look left key
-    keyDownLook_l = true
-  }
-
-  if (e.which == 90){ //look up key
-    keyDownLook_u = true
-  }
-
-  if (e.which == 83){ //look down key
-    keyDownLook_d = true
-  }
-
-  // vv Turn camera vv
-  if (keyDownLook_r == true){
-    p_alpha += 1
-  }
-  if (keyDownLook_l == true){
-    p_alpha -= 1
-  }
-  if (keyDownLook_u == true){
-    p_beta += 1
-  }
-  if (keyDownLook_d == true){
-    p_beta -= 1
-  }
-  // ^^ Turn camera ^^
-
-  // Clamping: 0 < p_alpha < 360
-  p_alpha = modulo(p_alpha, 360)
-
-  // Clamping: 0 < p_beta < 360
-  p_beta = modulo(p_beta, 360)
-
-
-  // VV move cam VV
-  if (keyDown_b){
-    cam_x -= moveX
-  }
-  if (keyDown_f){
-    cam_x += moveX
-  }
-  if (keyDown_l){
-    cam_y -= moveY
-  }
-  if (keyDown_r){
-    cam_y += moveY
-  }
-  if (keyDown_u){
-    cam_z += moveZ
-  }
-  if (keyDown_d){
-    cam_z -= moveZ
-  }
-  // ^^ move cam ^^
-
-  // Remove floating point errors from cam angles.
-  let rotPrecision = 10 ** rot_decimals
-  p_alpha = Math.round(p_alpha * rotPrecision) / rotPrecision
-  p_beta = Math.round(p_beta * rotPrecision) / rotPrecision
-
-  // Remove floating point errors from cam pos.
-  let posPrecision = 10 ** pos_decimals
-  cam_x = Math.round(cam_x * posPrecision) / posPrecision
-  cam_y = Math.round(cam_y * posPrecision) / posPrecision
-  cam_z = Math.round(cam_z * posPrecision) / posPrecision
-
-
-  output(["key_front", keyDown_f, " |key_back", keyDown_b, " |key_right: ", keyDown_r, " |key_left: ", keyDown_l], 0)
-  // pos var
-
-  output(["key_LU", keyDownLook_u, " |key_LD", keyDownLook_d, " |key_LR", keyDownLook_r, " |key_LL", keyDownLook_l], 1)
-  //angl var
-
-  output(["alpha", p_alpha], 2)
-  output(["beta", p_beta], 3)
-  output(e.which,4)
-
-  // Update screen
-  clearCanvas()
-  drawBorder()
-  renderPoints(toRender)
-  renderEdges(toRender)
-  drawPoint(0, 0, 5) // draw canvas' center
-})
-
-
-// when key is released
-document.addEventListener("keyup", function(e) {
-  if (e.which == 39){ //go right key
-    keyDown_r = false
-  }
-
-  if (e.which == 37){ //go left key
-    keyDown_l = false
-  }
-
-  if (e.which == 38){ //go forward key
-    keyDown_f = false
-  }
-
-  if (e.which == 40){ //go backward key
-    keyDown_b = false
-  }
-
-  if (e.which == 82){ //go up key
-    keyDown_u = false
-  }
-
-  if (e.which == 70){ //go down key
-    keyDown_d = false
-  }
-
-  if (e.which == 68){ //look right key
-    keyDownLook_r = false
-  }
-
-  if (e.which == 81){ //look left key
-    keyDownLook_l = false
-  }
-
-  if (e.which == 90){ //look up key
-    keyDownLook_u = false
-  }
-
-  if (e.which == 83){ //look down key
-    keyDownLook_d = false
-  }
-
-  output(["key_front", keyDown_f, " |key_back", keyDown_b, " |key_right: ", keyDown_r, " |key_left: ", keyDown_l], 0)
-  // pos var
-
-  output(["key_LU", keyDownLook_u, " |key_LD", keyDownLook_d, " |key_LR", keyDownLook_r, " |key_LL", keyDownLook_l], 1)
-  //angl var
-})
-
 // Moduo operation using the floored division.
 function modulo(a, n) {
   // The result has the sign of the divisor.
@@ -317,6 +150,184 @@ function modulo(a, n) {
 function degToRad(deg){
   return rad = deg * Math.PI / 180
 }
+
+
+// Set keyDown bool values to boolVal according to the pressed key.
+function keyDownValueToBool(keyVal, boolVal){
+  if (keyVal == 39){keyDown_r = boolVal} // Go Right.
+  if (keyVal == 37){keyDown_l = boolVal} // Go left.
+  if (keyVal == 38){keyDown_f = boolVal} // Go forward.
+  if (keyVal == 40){keyDown_b = boolVal} // Go backward.
+  if (keyVal == 82){keyDown_u = boolVal} // Go up.
+  if (keyVal == 70){keyDown_d = boolVal} // Go down.
+
+  if (keyVal == 68){keyDownLook_r = boolVal} // Look right.
+  if (keyVal == 81){keyDownLook_l = boolVal} // Look left.
+  if (keyVal == 90){keyDownLook_u = boolVal} // Look up.
+  if (keyVal == 83){keyDownLook_d = boolVal} // Look down.
+}
+
+
+// Move cam according to which key are pressed.
+function moveCam(mF, mB, mR, mL, mU, mD){
+  // Variables as m* are boolean, multiplying by 1 or 0
+  // the values to offset the cam.
+  
+  // Separte up/down because they're used less often.
+
+  if (mU || mD){
+    // If cam moves up or down.
+    cam_z += mU * moveZ // add up movement.
+    cam_z -= mD * moveZ // add down movement.
+  }
+
+  if (mF || mB || mR || mL){
+    // If cam moves forward/backward/right/up.
+    
+    // Get x & y component when going forward/backward according to player angle.
+    // Exchange x & y comp to get right/left components.
+    // Components' sign needs to be switched accordingly.
+    let comp1 = Math.sin(p_alpha) * moveX // (forward X)
+    let comp2 = Math.cos(p_alpha) * moveX // (forward Y)
+
+    cam_x += mF * comp1 // add forward movement, x-axis.
+    cam_y += mF * comp2 // add forward movement, y-axis.
+
+    cam_x -= mB * comp1 // sub forward movement, x-axis. (backward)
+    cam_y -= mB * comp2 // sub forward movement, y-axis. (backward)
+
+    cam_x += mR * comp2 // add move right, x-axis.
+    cam_y -= mR * comp1 // add move right, y-axis.
+
+    cam_x -= mL * comp2 // add move left, x-axis.
+    cam_y += mL * comp1 // add move left, y-axis.
+  }
+}
+
+
+// Rotate cam according to which key are pressed.
+function rotateCam(lR, lL, lU, lD, clamping=true){
+  p_alpha += lR * rotAlpha // Look right.
+  p_alpha -= lL * rotAlpha // Look left.
+  p_beta += lU * rotBeta   // Look up.
+  p_beta -= lD * rotBeta   // Look down.
+  
+  if (clamping){
+    // If clamping from 0° to 360° is true.
+
+    // Clamping: 0 < angle < 360
+    p_alpha = modulo(p_alpha, 360)
+    p_beta = modulo(p_beta, 360)
+  }
+}
+
+
+function removeFloatError(val, decimalPrecision=3){
+  // Get power of 10.
+  let precision = 10 ** decimalPrecision
+
+  // Truncate unwanted digits.
+  val = Math.round(val * precision) / precision
+
+  return val
+}
+
+
+// when key is pressed
+document.addEventListener("keydown", function(e) {
+  // e.which is the index of the pressed key.
+
+  if (e.which == 13){ // Stop all when "enter" is pressed (not yet implemented)
+    StopAll = true
+    throw 'Script stoped. (not really cuz it s not implemented yet)'
+  }
+
+  // Set pressed key as true.
+  keyDownValueToBool(e.which, true)
+
+  rotateCam(
+    keyDownLook_r,
+    keyDownLook_l,
+    keyDownLook_u,
+    keyDownLook_d,
+    clamping = true
+  )
+
+  moveCam(
+    keyDown_f,
+    keyDown_b,
+    keyDown_r,
+    keyDown_l,
+    keyDown_u,
+    keyDown_d
+  )
+
+  // Remove floating point errors from cam angles.
+  p_alpha = removeFloatError(p_alpha, rot_decimals)
+  p_beta = removeFloatError(p_beta, rot_decimals)
+
+  // Remove floating point errors from cam pos.
+  cam_x = removeFloatError(cam_x, pos_decimals)
+  cam_y = removeFloatError(cam_y, pos_decimals)
+  cam_z = removeFloatError(cam_z, pos_decimals)
+
+  // Show move keys.
+  output(
+    ["key_front", keyDown_f,
+     " |key_back", keyDown_b,
+     " |key_right: ", keyDown_r,
+     " |key_left: ", keyDown_l,
+     " |key_up:", keyDown_u,
+     " |key_down:", keyDown_d],
+    0
+  )
+
+  // Show rotate keys.
+  output(
+    ["key_LU", keyDownLook_u,
+     " |key_LD", keyDownLook_d,
+     " |key_LR", keyDownLook_r,
+     " |key_LL", keyDownLook_l],
+    1
+  )
+
+  // Show player angle.
+  output(["alpha", p_alpha], 2)
+  output(["beta", p_beta], 3)
+
+  // Show keyPressed's index
+  output(e.which,4)
+  
+  updateScreen()
+})
+
+
+// when key is released
+document.addEventListener("keyup", function(e) {
+  // e.which is the index of the pressed key.
+
+  keyDownValueToBool(e.which, false)
+
+  // Show move keys.
+  output(
+    ["key_front", keyDown_f,
+     " |key_back", keyDown_b,
+     " |key_right: ", keyDown_r,
+     " |key_left: ", keyDown_l,
+     " |key_up:", keyDown_u,
+     " |key_down:", keyDown_d],
+    0
+  )
+
+  // Show rotate keys.
+  output(
+    ["key_LU", keyDownLook_u,
+     " |key_LD", keyDownLook_d,
+     " |key_LR", keyDownLook_r,
+     " |key_LL", keyDownLook_l],
+    1
+  )
+})
 
 
 function distPoints (p1, p2){ // Get dist between 2 points in 3D.
@@ -386,7 +397,7 @@ function rotateEuler(point, angle=0, axis=0){ // point=[x, y, z]
     newZ = Y*Math.sin(angle) + Z*Math.cos(angle)
 
   } else if (axis == 1){ // rotation along y axis.
-    // angle > 0 -> pitch foward/down/dive
+    // angle > 0 -> pitch forward/down/dive
     newX = X*Math.cos(angle) + Z*Math.sin(angle)
     newY = Y
     newZ = -X*Math.sin(angle) + Z*Math.cos(angle)
@@ -519,39 +530,39 @@ function renderPoints(geometry){
 
       let shape = geometry[shapeIdx]
       //console.log(shape)
-  
+
       //let vertIdx = 0
       for (const vertIdx in shape["points"]) {
         // Loop over every vertex and generate their index.
-  
+
         // Get local vertex coordinates. (relative to the sape's origin)
         let localPoint = shape["points"][vertIdx]["point"]
-  
+
         // Get vertex pos in global space by adding shape's pos to the vertex.
         let globalPoint = shape["position"].map(function (axis, idx){
           return shape["points"][vertIdx]["point"][idx] + axis
         })
-  
+
         // Set coords relative to cam.
         let relPoint = relToCam(globalPoint)
         //console.log("dawing vertex at", globalPoint, "rel to cam", relPoint, "w/ color", shape["points"][vertIdx]["color"])
-  
-        if (isInFront(relPoint)){ // If point is in FOV.
+
+        if (isInFront(relPoint)){ // If point is not behind cam.
           // Project on screen.
           let screenImg = perspectiveProj(relPoint)
-  
+
           // Get dist from cam to vertex.
           let dist = distPoints([cam_x, cam_y, cam_z], relPoint)
-  
+
           // Get size from dist, clamped between 1 and 20.
           let size = Math.max(20 - dist, 1)
-  
+
           // Get point color (black if none given).
           let color = "#000000"
           if ("color" in shape["points"][vertIdx]){
             color = shape["points"][vertIdx]["color"]
           }
-  
+
           // Render Vertex.
           drawPoint(screenImg[0], screenImg[1], radius=4, color)
         }
@@ -574,11 +585,11 @@ function renderEdges(geometry){
       for (edgeIdx in shape["edges"]){
         // Loop over every edges and generate their index.
 
-        // Get the edge's vetices index.
+        // Get the edge's veticies index.
         let p1 = shape["edges"][edgeIdx]["edge"][0]
         let p2 = shape["edges"][edgeIdx]["edge"][1]
 
-        // Get vertex pos in global space by adding shape's pos to the vertex.
+        // Get vertex pos in global space by adding shape's pos to the vertex's.
         let p1Global = shape["position"].map(function (axis, idx){
           return shape["points"][p1]["point"][idx] + axis
         })
@@ -589,20 +600,20 @@ function renderEdges(geometry){
         // Set coords relative to cam.
         let p1Rel = relToCam(p1Global)
         let p2Rel = relToCam(p2Global)
-  
+
         if ((isInFront(p1Rel) || isInFront(p2Rel))){
-          // If one of the points is in FOV.
-  
+          // If one of the points is not behind cam.
+
           // Project on screen.
           let p1Screen = perspectiveProj(p1Rel, conpensateSign=true, debug=false)
           let p2Screen = perspectiveProj(p2Rel, conpensateSign=true, debug=false)
-  
+
           // Get point color (black if none given).
           let color = "#000000"
           if ("color" in shape["edges"][edgeIdx]){
             color = shape["edges"][edgeIdx]["color"]
           }
-  
+
           drawLine(p1Screen[0], p1Screen[1], p2Screen[0], p2Screen[1], true, color)
         }
       }
@@ -610,6 +621,16 @@ function renderEdges(geometry){
   }
   return
 }
+
+
+function updateScreen(){
+  clearCanvas()
+  renderPoints(toRender)
+  renderEdges(toRender)
+  drawBorder()
+  drawPoint(0, 0, 5) // Draw crossair in canvas' center.
+}
+
 
 /*
 // Update the screen (not cleared).
@@ -719,12 +740,12 @@ function loadJSON(){
   }
 
   let cube2 = Object.assign({},cube1) // Make a copy of cube1.
-  cube2["position"] = [10, 0, 0]    // Change cube2's pos.
+  cube2["position"] = [10, 0, 0]      // Change cube2's pos.
 
   console.log(cube1)
   console.log(cube2)
 
-  let fullGeom = [cube1, cube2]//JSON.parse([cube])
+  let fullGeom = [cube1, cube2]
   return fullGeom
 }
 
