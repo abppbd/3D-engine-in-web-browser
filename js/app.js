@@ -36,8 +36,8 @@ var moveX = 3 // forward/back.
 var moveY = 3 // right/left.
 var moveZ = 3 // up/down.
 
-var p_alpha = 0 // Player alpha angle (right-left motion).
-var p_beta = 0  // Player beta angle (up-down motion).
+var p_alpha = 0 // Player alpha angle (+right / -left).
+var p_beta = 0  // Player beta angle (+:up / -:down).
 
 var rotAlpha = 1 // Player alpha angle step.
 var rotBeta = 1  // Player beta angle step.
@@ -187,8 +187,9 @@ function moveCam(mF, mB, mR, mL, mU, mD){
     // Get x & y component when going forward/backward according to player angle.
     // Exchange x & y comp to get right/left components.
     // Components' sign needs to be switched accordingly.
-    let comp1 = Math.sin(p_alpha) * moveX // (forward X)
-    let comp2 = Math.cos(p_alpha) * moveX // (forward Y)
+    let alpha_angle = degToRad(p_alpha)
+    let comp1 = Math.cos(alpha_angle) * moveX // (forward X)
+    let comp2 = Math.sin(alpha_angle) * moveX // (forward Y)
 
     cam_x += mF * comp1 // add forward movement, x-axis.
     cam_y += mF * comp2 // add forward movement, y-axis.
@@ -196,23 +197,23 @@ function moveCam(mF, mB, mR, mL, mU, mD){
     cam_x -= mB * comp1 // sub forward movement, x-axis. (backward)
     cam_y -= mB * comp2 // sub forward movement, y-axis. (backward)
 
-    cam_x += mR * comp2 // add move right, x-axis.
-    cam_y -= mR * comp1 // add move right, y-axis.
+    cam_x -= mR * comp2 // add move right, x-axis.
+    cam_y += mR * comp1 // add move right, y-axis.
 
-    cam_x -= mL * comp2 // add move left, x-axis.
-    cam_y += mL * comp1 // add move left, y-axis.
+    cam_x += mL * comp2 // add move left, x-axis.
+    cam_y -= mL * comp1 // add move left, y-axis.
   }
 }
 
 
 // Rotate cam according to which key are pressed.
-function rotateCam(lR, lL, lU, lD, clamping=true){
+function rotateCam(lR, lL, lU, lD, clamp=true){
   p_alpha += lR * rotAlpha // Look right.
   p_alpha -= lL * rotAlpha // Look left.
   p_beta += lU * rotBeta   // Look up.
   p_beta -= lD * rotBeta   // Look down.
   
-  if (clamping){
+  if (clamp){
     // If clamping from 0° to 360° is true.
 
     // Clamping: 0 < angle < 360
@@ -250,7 +251,7 @@ document.addEventListener("keydown", function(e) {
     keyDownLook_l,
     keyDownLook_u,
     keyDownLook_d,
-    clamping = true
+    clamp = true
   )
 
   moveCam(
