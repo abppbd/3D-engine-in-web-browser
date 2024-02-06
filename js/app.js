@@ -13,26 +13,35 @@ const ctx = canvas.getContext("2d")
 const canvas_h = canvas.height
 const canvas_w  = canvas.width
 
-// keydown init
-var keyDown_r = false
-var keyDown_l = false
-var keyDown_f = false
-var keyDown_b = false
-var keyDownLook_r = false
-var keyDownLook_l = false
-var keyDownLook_u = false
-var keyDownLook_d = false
+// Mvmt keydown init.
+var keyDown_u = false // Mv up.
+var keyDown_d = false // Mv down.
+var keyDown_r = false // Mv right.
+var keyDown_l = false // Mv left.
+var keyDown_f = false // Mv foward.
+var keyDown_b = false // Mv backward.
+
+// Look keydown init.
+var keyDownLook_r = false // Lk right.
+var keyDownLook_l = false // Lk left.
+var keyDownLook_u = false // Lk up.
+var keyDownLook_d = false // Lk down.
 
 var cam_x = 0 // Player x coord.
 var cam_y = 0 // Player y coord.
 var cam_z = 0 // Player z coord.
 
-var p_alpha = 0 // Player alpha angle (right-left motion).
-var p_beta = 0 // Player beta angle (up-down motion).
+// Step size along each axis.
+var moveX = 3
+var moveY = 3
+var moveZ = 3
 
-var H_FOV = 90 // Horizontal Field Of View.
+var p_alpha = 0 // Player alpha angle (right-left motion).
+var p_beta = 0  // Player beta angle (up-down motion).
+
+var H_FOV = 90       // Horizontal Field Of View.
 var screenDist = 179 //FOVtoDist(H_FOV, canvas_w) // Dist screen to player/cam.
-var camPlaneClip = 0 // Min dist from cam for rendering.
+var camPlaneClip = 3 // Min dist from cam for rendering.
 
 const pos_decimals = 3 // Nb of decimals for position precision.
 const rot_decimals = 3 // Nb of decimals for rotation precision.
@@ -49,32 +58,51 @@ function clearCanvas(){
 }
 
 
+function compensateFlipScreen(x, y){
+  // Screen's (0,0) if the top left so increase in y lowers a point on screen.
+  return [point[0], -point[1]]
+}
+
+
 function drawLine(x1, y1, x2, y2, center=false, color="#000000"){
+
+  // Screen (0, 0) is canvas top left corner.
   let balanceX = 0
   let balanceY = 0
-
-  if (center){ // set canvas' center as 0, 0
+  if (center){
+    // Get canvas' center's coords.
     balanceX = canvas_w / 2
     balanceY = canvas_h / 2
+
+    // Get points coords rel to top left corner
+    x1 += balanceX
+    x2 += balanceX
+    y1 += balanceY
+    y2 += balanceY
   }
-  
-  // get coords (rel to center) as int
-  x1 = parseInt(x1 + balanceX)
-  x2 = parseInt(x2 + balanceX)
-  y1 = parseInt(y1 + balanceY)
-  y2 = parseInt(y2 + balanceY)
+
+  // Ints required to draw on canvas.
+  x1 = parseInt(x1)
+  x2 = parseInt(x2)
+  y1 = parseInt(y1)
+  y2 = parseInt(y2)
+
+  // Compensate Scrren flip:
+  // Transform (0,0) from the top left to the bottom left corner.
+  y1 = canvas_h - y1
+  y2 = canvas_h - y2
   
   if (typeof color != "string"){
-  // Assuming the Str given is the hex color.
+    // Assuming the Str given is the hex color.
     //console.log("The color parameter takes a str or an array.")
   }
   
   ctx.strokeStyle = color // Def stroke color.
 
-  ctx.beginPath() //New drawing "context"
+  ctx.beginPath()    //New drawing "context"
   ctx.moveTo(x1, y1) //line start
   ctx.lineTo(x2, y2) //line end
-  ctx.stroke() //update canvas
+  ctx.stroke()       //update canvas
 }
 
 
@@ -110,54 +138,62 @@ function output(txt, out=1){
 
 // when key is pressed
 document.addEventListener("keydown", function(e) {
-  if (e.which === 13){ // Stop all when "enter" is pressed
+  if (e.which == 13){ // Stop all when "enter" is pressed
     StopAll = true
     throw 'Script stoped. (not really cuz it s not implemented yet)'
   }
 
-  if (e.which === 39){ //go right key
+  if (e.which == 39){ //go right key
     keyDown_r = true
   }
 
-  if (e.which === 37){ //go left key
+  if (e.which == 37){ //go left key
     keyDown_l = true
   }
 
-  if (e.which === 38){ //go forward key
+  if (e.which == 38){ //go forward key
     keyDown_f = true
   }
 
-  if (e.which === 40){ //go backward key
+  if (e.which == 40){ //go backward key
     keyDown_b = true
   }
 
-  if (e.which === 68){ //look right key
+  if (e.which == 82){ //go up key
+    keyDown_u = true
+  }
+
+  if (e.which == 70){ //go down key
+    keyDown_d = true
+  }
+
+  if (e.which == 68){ //look right key
     keyDownLook_r = true
   }
 
-  if (e.which === 81){ //look left key
+  if (e.which == 81){ //look left key
     keyDownLook_l = true
   }
 
-  if (e.which === 90){ //look up key
+  if (e.which == 90){ //look up key
     keyDownLook_u = true
   }
 
-  if (e.which === 83){ //look down key
+  if (e.which == 83){ //look down key
     keyDownLook_d = true
   }
 
   // vv Turn camera vv
-  if (keyDownLook_r === true){
+  if (keyDownLook_r == true){
     p_alpha += 1
   }
-  if (keyDownLook_l === true){
+  if (keyDownLook_l == true){
     p_alpha -= 1
   }
-  if (keyDownLook_u === true){
+  if (keyDownLook_u == true){
     p_beta += 1
   }
-  if (keyDownLook_d === true){
+  if (keyDownLook_d == true){
     p_beta -= 1
   }
   // ^^ Turn camera ^^
@@ -167,27 +203,40 @@ document.addEventListener("keydown", function(e) {
 
   // Clamping: 0 < p_beta < 360
   p_beta = modulo(p_beta, 360)
-  
-  
+
+
   // VV move cam VV
   if (keyDown_b){
-    cam_x -= 3
+    cam_x -= moveX
   }
   if (keyDown_f){
-    cam_x += 3
+    cam_x += moveX
   }
   if (keyDown_l){
-    cam_y -= 3
+    cam_y -= moveY
   }
   if (keyDown_r){
-    cam_y += 3
+    cam_y += moveY
+  }
+  if (keyDown_u){
+    cam_z += moveZ
+  }
+  if (keyDown_d){
+    cam_z -= moveZ
   }
   // ^^ move cam ^^
 
-  // Remove floating point errors.
-  let precision = 10 ** rot_decimals
-  p_alpha = Math.round(p_alpha * precision) / precision
-  p_beta = Math.round(p_beta * precision) / precision
+  // Remove floating point errors from cam angles.
+  let rotPrecision = 10 ** rot_decimals
+  p_alpha = Math.round(p_alpha * rotPrecision) / rotPrecision
+  p_beta = Math.round(p_beta * rotPrecision) / rotPrecision
+
+  // Remove floating point errors from cam pos.
+  let posPrecision = 10 ** pos_decimals
+  cam_x = Math.round(cam_x * posPrecision) / posPrecision
+  cam_y = Math.round(cam_y * posPrecision) / posPrecision
+  cam_z = Math.round(cam_z * posPrecision) / posPrecision
+
 
   output(["key_front", keyDown_f, " |key_back", keyDown_b, " |key_right: ", keyDown_r, " |key_left: ", keyDown_l], 0)
   // pos var
@@ -204,40 +253,49 @@ document.addEventListener("keydown", function(e) {
   drawBorder()
   renderPoints(toRender)
   renderEdges(toRender)
+  drawPoint(0, 0, 5) // draw canvas' center
 })
 
 
 // when key is released
 document.addEventListener("keyup", function(e) {
-  if (e.which === 39){ //go right key
+  if (e.which == 39){ //go right key
     keyDown_r = false
   }
 
-  if (e.which === 37){ //go left key
+  if (e.which == 37){ //go left key
     keyDown_l = false
   }
 
-  if (e.which === 38){ //go forward key
+  if (e.which == 38){ //go forward key
     keyDown_f = false
   }
 
-  if (e.which === 40){ //go backward key
+  if (e.which == 40){ //go backward key
     keyDown_b = false
   }
 
-  if (e.which === 68){ //look right key
+  if (e.which == 82){ //go up key
+    keyDown_u = false
+  }
+
+  if (e.which == 70){ //go down key
+    keyDown_d = false
+  }
+
+  if (e.which == 68){ //look right key
     keyDownLook_r = false
   }
 
-  if (e.which === 81){ //look left key
+  if (e.which == 81){ //look left key
     keyDownLook_l = false
   }
 
-  if (e.which === 90){ //look up key
+  if (e.which == 90){ //look up key
     keyDownLook_u = false
   }
 
-  if (e.which === 83){ //look down key
+  if (e.which == 83){ //look down key
     keyDownLook_d = false
   }
 
@@ -250,7 +308,7 @@ document.addEventListener("keyup", function(e) {
 
 // Moduo operation using the floored division.
 function modulo(a, n) {
-  // The result has the sign as the divisor.
+  // The result has the sign of the divisor.
 	return a - (n * Math.floor(a/n))
 }
 
@@ -321,13 +379,13 @@ function rotateEuler(point, angle=0, axis=0){ // point=[x, y, z]
   let newZ = undefined
 
   // axis: 0->X; 1->Y; 2->Z
-  if (axis === 0){ // rotation along x axis.
+  if (axis == 0){ // rotation along x axis.
     // angle > 0 -> roll left
     newX = X
     newY = Y*Math.cos(angle) - Z*Math.sin(angle)
     newZ = Y*Math.sin(angle) + Z*Math.cos(angle)
 
-  } else if (axis === 1){ // rotation along y axis.
+  } else if (axis == 1){ // rotation along y axis.
     // angle > 0 -> pitch foward/down/dive
     newX = X*Math.cos(angle) + Z*Math.sin(angle)
     newY = Y
@@ -372,7 +430,7 @@ function relToCam(point){ // point: (x, y, z)
 
 
 // Project 3D point onto the screen. (canvas center is 0,0)
-function perspectiveProj(point){ // point = [x, y, z]
+function perspectiveProj(point, conpensateSign=true, debug = false){ // point = [x, y, z]
   // Assuming Coords have been made local to the camera.
   // aka: Projecting on the YZ plane (X axis is front/back)
 
@@ -380,22 +438,52 @@ function perspectiveProj(point){ // point = [x, y, z]
   let xDif = 0
   let yDif = 0
 
-  if (point[0] != 0){ // Avoid divisio by 0.
+  if (point[0] != 0){ // If a point isn't on the YZ plane of the cam.
+    // Avoid division by 0.
     xDif = point[1] * screenDist / point[0]
     yDif = point[2] * screenDist / point[0]
   }
 
-  // Get canvas coords. (Relative to the screen's center)
-  //let xScreen = canvas_w/2 + xDif
-  //let yScreen = canvas_h/2 - yDif
+  /*
+  Xscreen = Sx/2 + (Py*F)/Px
+  Yscreen = Sy/2 - (Pz*F)/Px
+  Px/y/z: point pos along axis
+  F: dist screen to player
+  Sx/y: screen size
+  */
 
-  /*Xscreen = Sx/2 + (Py*F)/Px
-    Yscreen = Sy/2 - (Pz*F)/Px
-    Px/y/z: point pos along axis
-    F: dist screen to player
-    Sx/y: screen size*/
+  // /!\ The projection method flips (x,y) screen coords if the point is behind
+  //     cam so a value that sould be positive will be negative and vice versa.
+  if (point[0] < 0){
+    // If point is behind cam & compensateSign is true.
 
-  // return [xScreen, yScreen]
+    // Print debug info if debug is true.
+    if (debug){console.log(point, "xDif:", xDif, "|yDif:", yDif)}
+    
+    if (conpensateSign){
+      // Compensate for the sign invertion.
+      xDif = -xDif
+      yDif = -yDif
+    }
+
+    // If a point is behind cam it should be rendered out of FOV
+    // An edge from in front to behind the cam will go of screen
+
+    output("CALCULATE CORRECTLY THE PROJECTION FOR POINTS BEHIND CAM!",5)
+    
+    if (xDif > 0) {
+      xDif += canvas_w/2
+    } else if (xDif < 0){
+      xDif -= canvas_w/2
+    }
+
+    if (yDif > 0) {
+      yDif += canvas_h/2
+    } else if (yDif < 0){
+      yDif -= canvas_h/2
+    }
+  }
+
   return [xDif, yDif]
 }
 
@@ -426,43 +514,47 @@ function renderPoints(geometry){
   for (const shapeIdx in geometry) {
     // Loop over every shape.
 
-    let shape = geometry[shapeIdx]
-    //console.log(shape)
+    if (geometry[shapeIdx]["mode"].includes("p")){
+      // If the shape has point mode active.
 
-    //let vertIdx = 0
-    for (const vertIdx in shape["points"]) {
-      // Loop over every vertex and generate their index.
-
-      // Get local vertex coordinates. (relative to the sape's origin)
-      let localPoint = shape["points"][vertIdx]["point"]
-
-      // Get vertex pos in global space by adding shape's pos to the vertex.
-      let globalPoint = shape["position"].map(function (axis, idx){
-        return shape["points"][vertIdx]["point"][idx] + axis
-      })
-
-      // Set coords relative to cam.
-      let relPoint = relToCam(globalPoint)
-      //console.log("dawing vertex at", globalPoint, "rel to cam", relPoint, "w/ color", shape["points"][vertIdx]["color"])
-
-      if (isInFront(relPoint)){ // If point is in FOV.
-        // Project on screen.
-        let screenImg = perspectiveProj(relPoint)
-
-        // Get dist from cam to vertex.
-        let dist = distPoints([cam_x, cam_y, cam_z], relPoint)
-
-        // Get size from dist, clamped between 1 and 20.
-        let size = Math.max(20 - dist, 1)
-
-        // Get point color (black if none given).
-        let color = "#000000"
-        if ("color" in shape["points"][vertIdx]){
-          color = shape["points"][vertIdx]["color"]
+      let shape = geometry[shapeIdx]
+      //console.log(shape)
+  
+      //let vertIdx = 0
+      for (const vertIdx in shape["points"]) {
+        // Loop over every vertex and generate their index.
+  
+        // Get local vertex coordinates. (relative to the sape's origin)
+        let localPoint = shape["points"][vertIdx]["point"]
+  
+        // Get vertex pos in global space by adding shape's pos to the vertex.
+        let globalPoint = shape["position"].map(function (axis, idx){
+          return shape["points"][vertIdx]["point"][idx] + axis
+        })
+  
+        // Set coords relative to cam.
+        let relPoint = relToCam(globalPoint)
+        //console.log("dawing vertex at", globalPoint, "rel to cam", relPoint, "w/ color", shape["points"][vertIdx]["color"])
+  
+        if (isInFront(relPoint)){ // If point is in FOV.
+          // Project on screen.
+          let screenImg = perspectiveProj(relPoint)
+  
+          // Get dist from cam to vertex.
+          let dist = distPoints([cam_x, cam_y, cam_z], relPoint)
+  
+          // Get size from dist, clamped between 1 and 20.
+          let size = Math.max(20 - dist, 1)
+  
+          // Get point color (black if none given).
+          let color = "#000000"
+          if ("color" in shape["points"][vertIdx]){
+            color = shape["points"][vertIdx]["color"]
+          }
+  
+          // Render Vertex.
+          drawPoint(screenImg[0], screenImg[1], radius=4, color)
         }
-
-        // Render Vertex.
-        drawPoint(screenImg[0], screenImg[1], radius=4, color)
       }
     }
   }
@@ -475,40 +567,44 @@ function renderEdges(geometry){
   for (const shapeIdx in geometry){
     // Loop over every shape.
 
-    let shape = geometry[shapeIdx]
-    for (edgeIdx in shape["edges"]){
-      // Loop over every edges and generate their index.
+    if (geometry[shapeIdx]["mode"].includes("e")){
+      // If the shape has edge mode active.
 
-      // Get the edge's vetices index.
-      let p1 = shape["edges"][edgeIdx]["edge"][0]
-      let p2 = shape["edges"][edgeIdx]["edge"][1]
+      let shape = geometry[shapeIdx]
+      for (edgeIdx in shape["edges"]){
+        // Loop over every edges and generate their index.
 
-      // Get vertex pos in global space by adding shape's pos to the vertex.
-      let p1Global = shape["position"].map(function (axis, idx){
-        return shape["points"][p1]["point"][idx] + axis
-      })
-      let p2Global = shape["position"].map(function (axis, idx){
-        return shape["points"][p2]["point"][idx] + axis
-      })
+        // Get the edge's vetices index.
+        let p1 = shape["edges"][edgeIdx]["edge"][0]
+        let p2 = shape["edges"][edgeIdx]["edge"][1]
 
-      // Set coords relative to cam.
-      let p1Rel = relToCam(p1Global)
-      let p2Rel = relToCam(p2Global)
+        // Get vertex pos in global space by adding shape's pos to the vertex.
+        let p1Global = shape["position"].map(function (axis, idx){
+          return shape["points"][p1]["point"][idx] + axis
+        })
+        let p2Global = shape["position"].map(function (axis, idx){
+          return shape["points"][p2]["point"][idx] + axis
+        })
 
-      if ((isInFront(p1Rel) || isInFront(p2Rel))){
-        // If one of the points is in FOV.
-
-        // Project on screen.
-        let p1Screen = perspectiveProj(p1Rel)
-        let p2Screen = perspectiveProj(p2Rel)
-
-        // Get point color (black if none given).
-        let color = "#000000"
-        if ("color" in shape["edges"][edgeIdx]){
-          color = shape["edges"][edgeIdx]["color"]
+        // Set coords relative to cam.
+        let p1Rel = relToCam(p1Global)
+        let p2Rel = relToCam(p2Global)
+  
+        if ((isInFront(p1Rel) || isInFront(p2Rel))){
+          // If one of the points is in FOV.
+  
+          // Project on screen.
+          let p1Screen = perspectiveProj(p1Rel, conpensateSign=true, debug=false)
+          let p2Screen = perspectiveProj(p2Rel, conpensateSign=true, debug=false)
+  
+          // Get point color (black if none given).
+          let color = "#000000"
+          if ("color" in shape["edges"][edgeIdx]){
+            color = shape["edges"][edgeIdx]["color"]
+          }
+  
+          drawLine(p1Screen[0], p1Screen[1], p2Screen[0], p2Screen[1], true, color)
         }
-
-        drawLine(p1Screen[0], p1Screen[1], p2Screen[0], p2Screen[1], true, color)
       }
     }
   }
@@ -537,84 +633,98 @@ function screenUpdate(){
 
 
 drawBorder()
-drawPoint(0, 0, 2) // draw canvas' center
+drawPoint(0, 0, 5) // draw canvas' center
 
 
 function loadJSON(){
-  cube = {"Id" : 0,
-          "name" : "cube",
-          "mode" : "p",
-          "render" : true,
-          "position" : [15, 0, 0],
-          "rotation" : [0, 0],
-          "points" : [{"point" : [5,5,5],
-                       "color" : "#F00000"},
-                      {"point" : [5,-5,5],
-                       "color" : "#0F0000"},
-                      {"point" : [5,-5,-5],
-                       "color" : "#00F000"},
-                      {"point" : [5,5,-5],
-                       "color" : "#000F00"},
-                      {"point" : [-5,5,5],
-                       "color" : "#F000FF"},
-                      {"point" : [-5,-5,5],
-                       "color" : "#0F00FF"},
-                      {"point" : [-5,-5,-5],
-                       "color" : "#00F0FF"},
-                      {"point" : [-5,5,-5],
-                       "color" : "#000FFF"}], //1st seen!
+  let cube1 = {
+    "Id" : 0,
+    "name" : "cube",
+    "mode" : "pe",
+    "render" : true,
+    "position" : [0, 0, 0],
+    "rotation" : [0, 0],
+    "points" : [
+      {"point" : [5,5,5],
+       "color" : "#F00000"},
+      {"point" : [5,-5,5],
+       "color" : "#0F0000"},
+      {"point" : [5,-5,-5],
+        "color" : "#00F000"},
+      {"point" : [5,5,-5],
+       "color" : "#000F00"},
+      {"point" : [-5,5,5],
+       "color" : "#F000FF"},
+      {"point" : [-5,-5,5],
+       "color" : "#0F00FF"},
+      {"point" : [-5,-5,-5],
+       "color" : "#00F0FF"},
+      {"point" : [-5,5,-5],
+       "color" : "#000FFF"}
+    ],
 
-          "edges" : [{"edge" : [0,1],
-                      "color" : "#00FF00"},
-                     {"edge" : [1,2],
-                      "color" : "#00FF00"},
-                     {"edge" : [2,3],
-                      "color" : "#00FF00"},
-                     {"edge" : [3,0],
-                      "color" : "#00FF00"},
-                     {"edge" : [4,5],
-                      "color" : "#00FF00"},
-                     {"edge" : [5,6],
-                      "color" : "#00FF00"},
-                     {"edge" : [6,7],
-                      "color" : "#00FF00"},
-                     {"edge" : [7,4],
-                      "color" : "#FFFF00"},
-                     {"edge" : [0,4],
-                      "color" : "#00FF00"},
-                     {"edge" : [1,5],
-                      "color" : "#00FF00"},
-                     {"edge" : [2,6],
-                      "color" : "#00FF00"},
-                     {"edge" : [3,7],
-                      "color" : "#00FF00"}],
+    "edges" : [
+      {"edge" : [0,1],
+       "color" : "#00FF00"},
+      {"edge" : [1,2],
+       "color" : "#00FF00"},
+      {"edge" : [2,3],
+       "color" : "#00FF00"},
+      {"edge" : [3,0],
+       "color" : "#00FF00"},
+      {"edge" : [4,5],
+       "color" : "#00FF00"},
+      {"edge" : [5,6],
+       "color" : "#00FF00"},
+      {"edge" : [6,7],
+       "color" : "#00FF00"},
+      {"edge" : [7,4], // special.
+       "color" : "#FFFF00"},
+      {"edge" : [0,4],
+       "color" : "#00FF00"},
+      {"edge" : [1,5],
+       "color" : "#00FF00"},
+      {"edge" : [2,6],
+       "color" : "#00FF00"},
+      {"edge" : [3,7],
+       "color" : "#00FF00"}
+    ],
 
-          "faces" : [{"front1" : [0, 1, 2], // Front face (+x)
-                      "color" : "#0000FF"},
-                     {"front2" : [2, 3, 0],
-                      "color" : "#0000FF"},
-                     {"back1" : [4, 5, 6], // Back face (-x)
-                      "color" : "#00FF00"},
-                     {"back2" : [6, 7, 4],
-                      "color" : "#00FF00"},
-                     {"top1" : [0, 1, 5], // Top face (+z)
-                      "color" : "#FF0000"},
-                     {"top2" : [5, 4, 0],
-                      "color" : "#FF0000"},
-                     {"left1" : [1, 2, 5], // Left face (-y)
-                      "color" : "#00FFFF"},
-                     {"left2" : [5, 6, 1],
-                      "color" : "#00FFFF"},
-                     {"right1" : [0, 4, 3], // Right face (+y)
-                      "color" : "#FFFF00"},
-                     {"right2" : [3, 7, 4],
-                      "color" : "#FFFF00"},
-                     {"bottom1" : [2, 3, 7], // Bottom face (-Z)
-                      "color" : "#FF00FF"},
-                     {"bottom2" : [7, 6, 2],
-                      "color" : "#FF00FF"}]
-         }
-  let fullGeom = [cube]//JSON.parse([cube])
+    "faces" : [
+      {"front1" : [0, 1, 2], // Front face (+x)
+       "color" : "#0000FF"},
+      {"front2" : [2, 3, 0],
+       "color" : "#0000FF"},
+      {"back1" : [4, 5, 6], // Back face (-x)
+       "color" : "#00FF00"},
+      {"back2" : [6, 7, 4],
+       "color" : "#00FF00"},
+      {"top1" : [0, 1, 5], // Top face (+z)
+       "color" : "#FF0000"},
+      {"top2" : [5, 4, 0],
+       "color" : "#FF0000"},
+      {"left1" : [1, 2, 5], // Left face (-y)
+       "color" : "#00FFFF"},
+      {"left2" : [5, 6, 1],
+       "color" : "#00FFFF"},
+      {"right1" : [0, 4, 3], // Right face (+y)
+       "color" : "#FFFF00"},
+      {"right2" : [3, 7, 4],
+       "color" : "#FFFF00"},
+      {"bottom1" : [2, 3, 7], // Bottom face (-Z)
+       "color" : "#FF00FF"},
+      {"bottom2" : [7, 6, 2],
+       "color" : "#FF00FF"}
+    ]
+  }
+
+  let cube2 = Object.assign({},cube1) // Make a copy of cube1.
+  cube2["position"] = [10, 0, 0]    // Change cube2's pos.
+
+  console.log(cube1)
+  console.log(cube2)
+
+  let fullGeom = [cube1, cube2]//JSON.parse([cube])
   return fullGeom
 }
 
