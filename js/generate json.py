@@ -72,7 +72,7 @@ json_file_dir = "geometry.json" # Output file.
 cube = {"Id" : 0,
         "name" : "cube",
         "mode" : "p",
-        "render" : True,
+        "isRendered" : True,
         "position" : [0, 0, 0],
         "rotation" : [0, 0],
         "points" : [{"point" : [5,5,5],
