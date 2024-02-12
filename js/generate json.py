@@ -72,7 +72,7 @@ json_file_dir = "geometry.json" # Output file.
 cube = {"Id" : 0,
         "name" : "cube",
         "mode" : "p",
-        "render" : True,
+        "isRendered" : True,
         "position" : [0, 0, 0],
         "rotation" : [0, 0],
         "points" : [{"point" : [5,5,5],
@@ -140,13 +140,14 @@ cube = {"Id" : 0,
                    {"bottom1" : [2, 3, 7], # Bottom face (-Z)
                     "color" : "#FF00FF"},
                    {"bottom2" : [7, 6, 2],
-                    "color" : "#FF00FF"}]
+                    "color" : "#FF00FF"}],
+        "color" : "#000000"
        }
 # --------------------------------------------------------------------------- #
 shapesToEncode = {"cube" : cube} # list of the shapes to encode.
 
 # User confiramation.
-user_input = input("The data in {json_file_dir} will be replaced by {shapesToEncode}, do you wish to continue (y/n)?")
+user_input = input(f"The data in {json_file_dir} will be replaced by {shapesToEncode}, do you wish to continue (y/n)?")
 
 if user_input == "y":
     # If yes proceed.
@@ -156,4 +157,3 @@ if user_input == "y":
         print("Done.")
 else:
     print("No confirmation given, canceling.")
-                   

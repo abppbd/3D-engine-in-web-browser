@@ -16,5 +16,5 @@ Download it all<sub>[3]</sub> and open 3Dengine in a browser<sub>[4]</sub> and a
 
 <sub>
   [3]: in reality you just need 3Dengine.html & app.js in the js folder, but who cares anyway? ¯\_(ツ)_/¯</br>
-  [4]: works on firefox & chrome for windows but not on iphone cuz files & folders don't work the same, for the rest idk)
+  [4]: works on firefox & chrome for windows but not on iphone cuz files & folders don't work the same, for the rest idk
 </sub>

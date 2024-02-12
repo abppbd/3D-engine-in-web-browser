@@ -663,7 +663,7 @@ function loadJSON(){
     "Id" : 0,
     "name" : "cube",
     "mode" : "pe",
-    "render" : true,
+    "isRendered" : true,
     "position" : [0, 0, 0],
     "rotation" : [0, 0],
     "points" : [
