@@ -767,9 +767,15 @@ function rendering(geometry, renderV=true, renderE=true, renderF=true){
           return vert
         })
 
-      if (renderV){renderVertex(relVert)}
+      if (renderV & geometry[shapeIdx]["mode"].includes("p")){
+        // If vertex and shape vertex mode are enabled, render vertices.
+        renderVertex(relVert)
+      }
 
-      if (renderE){renderEdge(relVert, shape["edges"])}
+      if (renderE & geometry[shapeIdx]["mode"].includes("e")){
+        // If edge and shape edge mode are enabled, render edges.
+        renderEdge(relVert, shape["edges"])
+      }
     }
   }
 }
