@@ -1,4 +1,8 @@
 """
+/!\: Activate the System Console to confirm file overwrite (locks blender):
+     Menu Bar -> Window -> Toggle System Console
+
+
 This script is meant to be run in the Blender' python environment.
 
 Generate a JSON file from objects in the scene with each vertex & their coords,
@@ -10,9 +14,6 @@ The produced output can be feed to a JavaScript program for 3D rendering.
 /!\: Add & apply triangulate modifier to every mesh in the scene if rendering
      in face mode! Otherwise only part of the faces will be rendered. The JS
      program can only handle triangles.
-
-/!\: Activate the System Console to confirm file overwrite:
-     Menu Bar -> Window -> Toggle System Console
 """
 
 
@@ -167,19 +168,21 @@ def main(mode="pef", color="#000000", file_path=None):
             rotation = (degrees(obj.rotation_euler[2]),
                         degrees(obj.rotation_euler[1]))
 
+            print(ID, name, position, rotation)
+
             # Get vertices' data.
             vertices = make_vertex_list(obj=obj)
-            print("\n Vertices:")
+            print(f"\n Vertices of {name}:")
             pprint(vertices)
 
             # Get edges' data.
             edges = make_edge_list(obj=obj)
-            print("\n Edges:")
+            print(f"\n Edges of {name}:")
             pprint(edges)
 
             # Get faces' data.
             faces = make_face_list(obj=obj)
-            print("\n Faces:")
+            print(f"\n Faces of {name}:")
             pprint(faces)
             print()
 
