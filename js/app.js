@@ -39,8 +39,8 @@ var moveZ = 1 // up/down.
 var p_alpha = 0 // Player alpha angle (+right / -left).
 var p_beta = 0  // Player beta angle (+:up / -:down).
 
-var rotAlpha = 1 // Player alpha angle step.
-var rotBeta = 1  // Player beta angle step.
+var rotAlpha = 5 // Player alpha angle step.
+var rotBeta = 5  // Player beta angle step.
 
 var H_FOV = 90         // Horizontal Field Of View.
 var screenDist = 179//FOVtoDist(H_FOV, canvas_w) // Dist screen to player/cam.
@@ -73,12 +73,6 @@ function objectClone(obj){
 function clearCanvas(){
   ctx.clearRect(0, 0, canvas_w, canvas_h)
 }
-
-/* Legacy (useless) function.
-function compensateFlipScreen(x, y){
-  // Screen's (0,0) if the top left so increase in y lowers a point on screen.
-  return [point[0], -point[1]]
-}*/
 
 
 function drawLine(x1, y1, x2, y2, center=false, color="#000000"){
@@ -439,26 +433,26 @@ function rotateEuler(point, angle=0, axis=0){ // point=[x, y, z]
 }
 
 
-// returns coords relative to cam (cancel, pos & rotation offsets)
+// Returns coords relative to cam (cancel, pos & rotation offsets).
 function relToCam(point){ // point: (x, y, z)
   
-  // cancel cam's translation
+  // Cancel cam's translation.
   let transX = point[0] - cam_x
   let transY = point[1] - cam_y
   let transZ = point[2] - cam_z
   let local_pos = [transX, transY, transZ]
 
-  // cancel alpha cam rotation (yaw, z axis)
+  // Cancel alpha cam rotation (yaw, z axis)
   let alphaCancel = rotateEuler(local_pos, -p_alpha, 2)
 
-  //cancel beta cam rotation (pitch, y axis)
+  // Cancel beta cam rotation (pitch, y axis).
   let local_pos_dir = rotateEuler(alphaCancel, p_beta, 1)
 
   return local_pos_dir
 }
 
 
-// Project 3D point onto the screen. (canvas center is 0,0)
+// Project 3D point onto the screen. (canvas center is 0,0).
 // point = [x, y, z]
 function perspectiveProj(point, conpensateSign=true, debug=false){
   // Assuming Coords have been made local to the camera.
@@ -518,7 +512,7 @@ function perspectiveProj(point, conpensateSign=true, debug=false){
 }
 
 
-// Check if a point is in front of the camera. (use after applying relToCam)
+// Check if a point is in front of the camera (use after applying relToCam).
 function isInFront(point, planeCliping = camPlaneClip){ // point = [x, y, z]
   return point[0] - planeCliping > 0
 }
@@ -537,110 +531,6 @@ function inFOV(point){ // point = [x, y]
     return false
   }
 }
-
-
-/* Render vertices (Defunct).
-function renderPoints(geometry){
-  for (const shapeIdx in geometry) {
-    // Loop over every shape.
-
-    if (geometry[shapeIdx]["mode"].includes("p")){
-      // If the shape has point mode active.
-
-      let shape = geometry[shapeIdx]
-      //console.log(shape)
-
-      //let vertIdx = 0
-      for (const vertIdx in shape["points"]) {
-        // Loop over every vertex and generate their index.
-
-        // Get local vertex coordinates. (relative to the sape's origin)
-        let localPoint = shape["points"][vertIdx]["point"]
-
-        // Get vertex pos in global space by adding shape's pos to the vertex.
-        let globalPoint = shape["position"].map(function (axis, idx){
-          return shape["points"][vertIdx]["point"][idx] + axis
-        })
-
-        // Set coords relative to cam.
-        let relPoint = relToCam(globalPoint)
-        //console.log("dawing vertex at", globalPoint, "rel to cam", relPoint, "w/ color", shape["points"][vertIdx]["color"])
-
-        if (isInFront(relPoint)){ // If point is not behind cam.
-          // Project on screen.
-          let screenImg = perspectiveProj(relPoint)
-
-          // Get dist from cam to vertex.
-          let dist = distPoints([cam_x, cam_y, cam_z], relPoint)
-
-          // Get size from dist, clamped between 1 and 20.
-          let size = Math.max(20 - dist, 1)
-
-          // Get point color (black if none given).
-          let color = "#000000"
-          if ("color" in shape["points"][vertIdx]){
-            color = shape["points"][vertIdx]["color"]
-          }
-
-          // Render Vertex.
-          drawPoint(screenImg[0], screenImg[1], radius=4, color)
-        }
-      }
-    }
-  }
-  return
-}
-*/
-
-/* Render edges (Defunct).
-function renderEdges(geometry){
-  for (const shapeIdx in geometry){
-    // Loop over every shape.
-
-    if (geometry[shapeIdx]["mode"].includes("e")){
-      // If the shape has edge mode active.
-
-      let shape = geometry[shapeIdx]
-      for (edgeIdx in shape["edges"]){
-        // Loop over every edges and generate their index.
-
-        // Get the edge's veticies index.
-        let p1 = shape["edges"][edgeIdx]["edge"][0]
-        let p2 = shape["edges"][edgeIdx]["edge"][1]
-
-        // Get vertex pos in global space by adding shape's pos to the vertex's.
-        let p1Global = shape["position"].map(function (axis, idx){
-          return shape["points"][p1]["point"][idx] + axis
-        })
-        let p2Global = shape["position"].map(function (axis, idx){
-          return shape["points"][p2]["point"][idx] + axis
-        })
-
-        // Set coords relative to cam.
-        let p1Rel = relToCam(p1Global)
-        let p2Rel = relToCam(p2Global)
-
-        if ((isInFront(p1Rel) || isInFront(p2Rel))){
-          // If one of the points is not behind cam.
-
-          // Project on screen.
-          let p1Screen = perspectiveProj(p1Rel, conpensateSign=true, debug=false)
-          let p2Screen = perspectiveProj(p2Rel, conpensateSign=true, debug=false)
-
-          // Get point color (black if none given).
-          let color = "#000000"
-          if ("color" in shape["edges"][edgeIdx]){
-            color = shape["edges"][edgeIdx]["color"]
-          }
-
-          drawLine(p1Screen[0], p1Screen[1], p2Screen[0], p2Screen[1], true, color)
-        }
-      }
-    }
-  }
-  return
-}
-*/
 
 
 // Apply shape's pos & rot to it's vertices to get their global coords.
@@ -679,26 +569,6 @@ function applyTransform(vertices, shapePos, shapeRot){
       vertCo[axisIdx] = removeFloatError(vertCo[axisIdx], pos_decimals)
     }
   }
-
-/* SHIT TRIED WITH THE ARRAY.PROTOTYPE.MAP METHODE, A PAIN IN THE ASS CUZ IT
-   IGNORES GLOBAL VARIABLES CUZ IT4S A FUNC IN A FUNC >:(
-   EDIT 1H LATER: I FORGOT TO PASS ARGS TO THE FUNC >>>>>>:((((((
-
-  // Apply position:
-  let globalPos = localVert.map(forEachVert, shapePos)
-
-  function forEachVert(vert, idxV){
-      // Get the vertex coords then, for each axis add the shape's pos to the
-      // vertex's coresponding coord & remove float error.
-      let newVert = vert["point"].map(addShapePos, this)
-  }
-  
-  function addShapePos(axis, i){
-    console.log(axis, i, shapePos)
-    removeFloatError(axis + shapePos[i], pos_decimals)
-  }
-*/
-
   return localVert
 }
 
@@ -784,21 +654,11 @@ function rendering(geometry, renderV=true, renderE=true, renderF=true){
 // Rendering Routine.
 function updateScreen(){
   clearCanvas()
-  //renderPoints(toRender)
-  //renderEdges(toRender)
   rendering(geometry=toRender, renderV=true, renderE=true, renderF=false), 
   drawBorder()
   drawPoint(0, 0, 5, "#FFFFFF") // Clear the crossair's background w/ white.
   drawPoint(0, 0, 5, "#888888") // Draw a grey crossair in the canvas' center.
 }
-
-
-aPos = [1,0,0]
-aRot = [90.0, 0]
-a = [{"point" : [5,5,5],
-      "color" : "#F00000"}]
-b = applyTransform(a, aPos, aRot)
-console.log("done transform.", b)
 
 
 // Give geometry data.
