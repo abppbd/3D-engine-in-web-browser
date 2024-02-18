@@ -63,7 +63,7 @@ function objectClone(obj){
     return obj
 
   var temp = new obj.constructor(); 
-  for(var key in obj)
+  for (var key in obj)
     temp[key] = objectClone(obj[key]);
 
   return temp;
@@ -127,10 +127,16 @@ function drawPoint(x, y, radius=10, color="#000000"){ // draw cross at x, y
 
 
 // "p" is an arrays of 2 elements (x, y).
-function drawTriangle(p1, p2, p3){
-  drawLine(p1[0], p1[1], p2[0], p2[1])
-  drawLine(p2[0], p2[1], p3[0], p3[1])
-  drawLine(p3[0], p3[1], p1[0], p1[1])
+function drawTriangle(p1, p2, p3, color="#C458A9"){
+    ctx.beginPath()          // Start triagle.
+    ctx.moveTo(p1[0], p1[1]) // 1st point.
+    ctx.lineTo(p2[0], p2[1]) // 2nd point.
+    ctx.lineTo(p3[0], p3[1]) // 3rd point.
+    ctx.closePath()          // End triagle.
+    ctx.fillStyle = color    // Set fill color.
+    ctx.fill()               // Fill the triangle.
+    ctx.lineWidth = 0        // Give the triangle no strokes. 
+    ctx.stroke();            // Draw triangle;
 }
 
 
@@ -594,14 +600,14 @@ function renderVertex(vert){
 
 
 function renderEdge(vert, edges){
-  // "vert" is the list of vertices and "edge" is the edges_keys associated.
+  // "vert" is the list of vertices and "edges" is the edges_keys associated.
 
-  for(edgeIdx in edges){
+  for (edgeIdx in edges){
     // Loop over every edge.
 
-    // Get edge's vertices' coords.
     v1 = vert[edges[edgeIdx]["edge"][0]]["point"]
     v2 = vert[edges[edgeIdx]["edge"][1]]["point"]
+    // Get the edge's vertices' coords.
 
     if (isInFront(v1) || isInFront(v2)){
       // If either of the edge's vertices are in front of the ZY plane.
@@ -616,6 +622,33 @@ function renderEdge(vert, edges){
     }
   }
 }
+
+
+function renderTriangle(vert, faces){
+  // "vert" is the list of vertices and "faces" is the faces' verices' index associated.
+  
+  for (faceIdx in faces){
+    // Loop over every face
+
+    v1 = vert[faces[edgeIdx]["face"][0]]["point"]
+    v2 = vert[faces[edgeIdx]["face"][0]]["point"]
+    v3 = vert[faces[edgeIdx]["face"][0]]["point"]
+    // Get the face's vertices' coords.
+
+    if (isInFront(v1) || isInFront(v2) || isInFront(v3)){
+      // If any of the face's vertices are in front of the ZY plane.
+
+      v1Proj = perspectiveProj(v1)
+      v2Proj = perspectiveProj(v2)
+      v3Proj = perspectiveProj(v3)
+      // Project the points onto the screen.
+
+      drawTriangle(v1Proj, v2Proj, v3Proj)
+      // Draw the triangle face.
+    }
+  }
+}
+
 
 // Unify vertex, edge & face rendering to speed it up.
 function rendering(geometry, renderV=true, renderE=true, renderF=true){
