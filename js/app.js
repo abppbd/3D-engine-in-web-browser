@@ -52,6 +52,7 @@ const pos_decimals = 3 // Nb of decimals for position precision.
 const rot_decimals = 3 // Nb of decimals for rotation precision.
 
 const toRender = loadJSON()
+const renderOrder = [1,0]
 /*const geometryFile = "file:///C:/Users/lucamorriello/Documents/3Dengine/js/geometry.json"
 var json = "placeholder"
 // https://stackoverflow.com/a/14446538
@@ -77,47 +78,15 @@ function clearCanvas(){
 }
 
 
-// Get coords rel to top left corner for points rel to canvas' center.
-function fromCenterToCorner(p){
-  // Canvas' (0, 0) is the top left corner but rendering is done rel to canvas'
-  // center. This function compensates the offsets.
-  
-  p[0] += hCanvas_h
-  p[1] += hCanvas_w
-  // Apply Offset.
-  console.log(p)
-
-  return p
-}
-
-
 function drawLine(x1, y1, x2, y2, center=false, color="#000000"){
-
-  // Screen (0, 0) is canvas top left corner.
-  let balanceX = 0
-  let balanceY = 0
 
   if (center){
     // If the coords given are rel to the canvas' center.
-
-    let p1 = fromCenterToCorner([x1, y1])
-    let p2 = fromCenterToCorner([x2, y2])
-
-    x1 = p1[0]
-    x2 = p2[0]
-    y1 = p1[1]
-    y2 = p2[1]
-/*
-    // Get canvas' center's coords.
-    balanceX = canvas_w / 2
-    balanceY = canvas_h / 2
-
     // Get points coords rel to top left corner
-    x1 += balanceX
-    x2 += balanceX
-    y1 += balanceY
-    y2 += balanceY
-*/
+    x1 += hCanvas_w
+    x2 += hCanvas_w
+    y1 += hCanvas_h
+    y2 += hCanvas_h
   }
 
   // Ints required to draw on canvas.
@@ -126,22 +95,24 @@ function drawLine(x1, y1, x2, y2, center=false, color="#000000"){
   y1 = parseInt(y1)
   y2 = parseInt(y2)
 
-  // Compensate Scrren flip:
+  // Compensate Screen flip:
   // Transform (0,0) from the top left to the bottom left corner.
   y1 = canvas_h - y1
   y2 = canvas_h - y2
   
   if (typeof color != "string"){
     // Assuming the Str given is the hex color.
-    //console.log("The color parameter takes a str or an array.")
+    console.log("The color parameter takes a str or an array.")
+    ctx.strokeStyle = "#000000"
+  } else {
+    ctx.strokeStyle = color
   }
-  
-  ctx.strokeStyle = color // Def stroke color.
 
-  ctx.beginPath()    //New drawing "context"
-  ctx.moveTo(x1, y1) //line start
-  ctx.lineTo(x2, y2) //line end
-  ctx.stroke()       //update canvas
+  // Draw Line
+  ctx.beginPath()
+  ctx.moveTo(x1, y1)
+  ctx.lineTo(x2, y2)
+  ctx.stroke() //update canvas
 }
 
 
@@ -151,24 +122,31 @@ function drawPoint(x, y, radius=10, color="#000000"){ // draw cross at x, y
 }
 
 
-// "p" is an arrays of 2 elements (x, y).
 function drawTriangle(p1, p2, p3, color="#C458A9"){
+    // "p" is an arrays of 2 elements (x, y).
 
     p1 = p1.map(function (p){return Math.round(p)})
     p2 = p2.map(function (p){return Math.round(p)})
     p3 = p3.map(function (p){return Math.round(p)})
     // Round each coords to the nearest int for canvas ploting.
-    //console.log(p1, p2, p3)
 
-    ctx.beginPath()          // Start triagle.
+    // Make point rel to canvas (0,0) != canvas center.
+    p1[0] += hCanvas_w
+    p1[1] += hCanvas_h
+    p2[0] += hCanvas_w
+    p2[1] += hCanvas_h
+    p3[0] += hCanvas_w
+    p3[1] += hCanvas_h
+
+    ctx.beginPath()
     ctx.moveTo(p1[0], p1[1]) // 1st point.
     ctx.lineTo(p2[0], p2[1]) // 2nd point.
     ctx.lineTo(p3[0], p3[1]) // 3rd point.
-    ctx.closePath()          // End triagle.
-    ctx.fillStyle = color    // Set fill color.
-    ctx.fill()               // Fill the triangle.
-    ctx.lineWidth = 0        // Give the triangle no strokes. 
-    ctx.stroke();            // Draw triangle;
+    ctx.closePath()
+    ctx.fillStyle = color
+    ctx.fill()
+    ctx.lineWidth = 0 // No strokes. 
+    ctx.stroke()
 }
 
 
