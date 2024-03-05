@@ -116,27 +116,29 @@ function drawLine(x1, y1, x2, y2, center=false, color="#000000"){
 }
 
 
-function drawPoint(x, y, radius=10, color="#000000"){ // draw cross at x, y
-  drawLine(x+radius, y, x-radius, y, center=true, color) // down to up
-  drawLine(x, y+radius, x, y-radius, center=true, color) // right to left
-}
-
-
 function drawTriangle(p1, p2, p3, color="#C458A9"){
     // "p" is an arrays of 2 elements (x, y).
 
-    p1 = p1.map(function (p){return Math.round(p)})
-    p2 = p2.map(function (p){return Math.round(p)})
-    p3 = p3.map(function (p){return Math.round(p)})
-    // Round each coords to the nearest int for canvas ploting.
+    // TODO: unite rel to center & screen flip.
+    // p1[1] = hCanvas_h - p1[1]
+    output("Unite rel to center & screen flip in drawTriangle.", 7)
 
-    // Make point rel to canvas (0,0) != canvas center.
+    // Make point rel to canvas cuz (0,0) != canvas center.
     p1[0] += hCanvas_w
     p1[1] += hCanvas_h
     p2[0] += hCanvas_w
     p2[1] += hCanvas_h
     p3[0] += hCanvas_w
     p3[1] += hCanvas_h
+    
+    p1[1] = canvas_h - p1[1]
+    p2[1] = canvas_h - p2[1]
+    p3[1] = canvas_h - p3[1]
+
+    p1 = p1.map(function (p){return Math.round(p)})
+    p2 = p2.map(function (p){return Math.round(p)})
+    p3 = p3.map(function (p){return Math.round(p)})
+    // Round each coords to the nearest int for canvas ploting.
 
     ctx.beginPath()
     ctx.moveTo(p1[0], p1[1]) // 1st point.
@@ -147,6 +149,12 @@ function drawTriangle(p1, p2, p3, color="#C458A9"){
     ctx.fill()
     ctx.lineWidth = 0 // No strokes. 
     ctx.stroke()
+}
+
+
+function drawPoint(x, y, radius=10, color="#000000"){ // draw cross at x, y
+  drawLine(x+radius, y, x-radius, y, center=true, color) // down to up
+  drawLine(x, y+radius, x, y-radius, center=true, color) // right to left
 }
 
 
