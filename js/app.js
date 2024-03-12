@@ -195,8 +195,10 @@ function degToRad(deg){
 }
 
 
+// Returns list of shapes sorted by distance (min -> max).
 function objectRenderOrdering(objs){
-  let objsDist = [] // List of objs dist to cam paired w/ their list Idx.
+  let objsDist = []
+  // List of objs dist to cam paired w/ their list Idx.
 
   for (objIdx in objs){
     // Loop over every object.
@@ -207,9 +209,17 @@ function objectRenderOrdering(objs){
 
     objsDist.push([distToCam, parseInt(objIdx)])
   }
-  objsDist = objsDist.sort()
 
-  return objsDist
+  objsDist = objsDist.sort(function(a, b){return b[0]-a[0]})
+  // SOrt in ascending order.
+
+  let idxOrder = objsDist.map(
+    function (item, idx){
+      return item[1]
+    })
+  // Only get Idx of objs.
+
+  return idxOrder
 }
 
 
@@ -400,7 +410,7 @@ document.addEventListener("keyup", function(e) {
 
 // Get dist^2 between 2 points in 3D.
 function distPointsPow2 (p1, p2){
-  let rel = [p1[0] - p2[0], p1[1] - p2[1], p1[2] - p2[2]]
+  let rel = [p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]]
   let dist = rel[0]**2 + rel[1]**2 + rel[2]**2 // Don't sqrt cuz faster.
   return dist
 }
@@ -696,8 +706,12 @@ function renderTriangle(vert, faces){
 
 // Unify vertex, edge & face rendering to speed it up.
 function rendering(geometry, renderV=true, renderE=true, renderF=true){
-  for (const shapeIdx in geometry) {
+  let order = objectRenderOrdering(geometry)
+
+  for (const orderIdx in order) {
     // Loop over every shape.
+
+    let shapeIdx = order[orderIdx]
 
     let shape = geometry[shapeIdx]
 
