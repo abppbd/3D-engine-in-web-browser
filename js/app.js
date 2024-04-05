@@ -1,9 +1,14 @@
 /*
-  global coords:
-  - x: front/back
-  - y: right/left
-  - z: up/down
+Made by abppbd.
+Links:
+https://github.com/abppbd
+https://www.youtube.com/@abppbd
 */
+
+// global coords:
+// - x: front/back
+// - y: right/left
+// - z: up/down
 
 var StopAll = false
 
