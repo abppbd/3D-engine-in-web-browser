@@ -178,11 +178,7 @@ function drawLine(x1, y1, x2, y2, center=false, color="#000000", debug=false){
 function drawTriangle(p1, p2, p3, color="#C458A9"){
     // "p" is an arrays of 2 elements (x, y).
 
-    // TODO: unite rel to center & screen flip.
-    // p1[1] = hCanvas_h - p1[1]
-    output("Unite rel to center & screen flip in drawTriangle.", 7)
-
-    // Make point rel to canvas cuz (0,0) != canvas center.
+    // Make point rel to canvas cuz (0,0) != canvas center (and flip it).
     p1[0] += hCanvas_w
     p1[1] += hCanvas_h
     p2[0] += hCanvas_w
@@ -209,6 +205,36 @@ function drawTriangle(p1, p2, p3, color="#C458A9"){
     ctx.lineWidth = 0 // No strokes.
     ctx.strokeStyle = color
     ctx.stroke()
+}
+
+
+function drawNGon(points, color="#8EBA63"){
+  let pointsOnCanvas = points.map(
+    function (item, idx){
+      item = [item[0] + hCanvas_w, item[1] + hCanvas_h]
+      item[1] = canvas_h - item[1]
+      // Make point rel to canvas cuz (0,0) != canvas center (and flip it).
+      return [Math.round(item[0]), Math.round(item[1])]
+      // Round each coords to the nearest int for canvas ploting.
+    }
+  )
+
+  ctx.beginPath()
+  ctx.moveTo(pointsOnCanvas[0][0], pointsOnCanvas[0][1]) // Go to 1st point.
+  for (point of pointsOnCanvas.slice(1)){
+    console.log(point)
+    ctx.lineTo(point[0], point[1])
+    // Go to every point in the list.
+  }
+  ctx.closePath()
+
+  ctx.fillStyle = color
+  ctx.fill()
+  ctx.lineWidth = 0 // No strokes.
+  ctx.strokeStyle = color
+  ctx.stroke()
+  // Invert colors:
+  //https://stackoverflow.com/questions/56043972/is-there-a-way-to-set-negative-inverted-color-as-stroke-fill-color
 }
 
 
@@ -909,7 +935,7 @@ function rendering(geometry, renderV=true, renderE=true, renderF=true){
 // Rendering Routine.
 function updateScreen(debug=false){
   clearCanvas()
-  rendering(geometry=toRender, renderV=true, renderE=true, renderF=true), 
+  //rendering(geometry=toRender, renderV=true, renderE=true, renderF=true), 
   drawBorder()
   drawPoint(0, 0, 5, "#FFFFFF") // Clear the crossair's background w/ white.
   drawPoint(0, 0, 5, "#888888") // Draw a grey crossair in the canvas' center.
