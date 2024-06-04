@@ -123,10 +123,10 @@ function drawInfinityAndNaN(x, y){
 
 function drawLine(x1, y1, x2, y2, center=false, color="#000000", debug=false){
 
-  if(debug){
-    console.log("Draw line:")
+  /* if(debug){
+    console.log("Pre-inf check:")
     console.log("p1:", [x1, y1], "p2:", [x2, y2])
-    }
+  } */
 
   if (!(isFinite(x1) & isFinite(y1))){
     [x1, y1] = drawInfinityAndNaN(x1, y1)
@@ -136,12 +136,10 @@ function drawLine(x1, y1, x2, y2, center=false, color="#000000", debug=false){
   }
   // Draw +/-Inf & NaN
 
-console.log("drawEdge", [x1, y1], [x2, y2])
-
-  if(debug){
-    console.log("Post inf check:")
+  /* if(debug){
+    console.log("Post-inf check:")
     console.log("p1:", [x1, y1], "p2:", [x2, y2])
-  }
+  } */
 
   if (center){
     // If the coords given are rel to the canvas' center.
@@ -231,8 +229,6 @@ function drawPolygon(points, color="#8EBA63"){
       return point
     }
   )
-
-console.log(pointsOnCanvas, color)
 
   ctx.beginPath()
   ctx.moveTo(pointsOnCanvas[0][0], pointsOnCanvas[0][1]) // Go to 1st point.
@@ -673,11 +669,12 @@ function perspectiveProj(point, conpensateSign=true, debug=false){
   if(Number.isNaN(xDif)){xDif = 0}
   if(Number.isNaN(yDif)){yDif = 0}
 
-  if (point[0] != 0){ // If a point isn't on the YZ plane of the cam.
-    // Avoid division by 0.
-    xDif = point[1] * screenDist / point[0]
-    yDif = point[2] * screenDist / point[0]
-  }
+  point[0] = point[0] || camPlaneClip / 2
+  // If point[0] is 0 (on the cam's YZ plane) or a NaN.
+  // Move the point by the min allowed (positional decimal limit).
+
+  xDif = point[1] * screenDist / point[0]
+  yDif = point[2] * screenDist / point[0]
 
   /*
   Xscreen = Sx/2 + (Py*F)/Px
@@ -724,13 +721,39 @@ function pointOffScreen(fixedPoint, movablePoint, edgeXdist=4, edgeYdist=2, debu
     let fixToMovX = movablePoint[0] - fixedPoint[0]
     let fixToMovY = movablePoint[1] - fixedPoint[1]
     let fixToEdgeX = edgeXdist - fixedPoint[0]
+    let fixToEdgeY = edgeYdist - fixedPoint[1]
     // Get mov point & edge rel to the fix point.
 
     let kX = fixToEdgeX / fixToMovX + 1
+    let kY = fixToEdgeY / fixToMovY + 1
     // Get factor to send mov point out of screen.
+    
+    let k = kX
+    if (!isFinite(k)){k = kY}
+    
+    /* if(debug){
+      console.log("k:", k)
+      console.log("fixToMovX:", fixToMovX)
+      console.log("fixToMovY:", fixToMovY)
+      console.log("fixedPoint:", fixedPoint)
+    } */
 
-    newX = fixToMovX * kX + fixedPoint[0]
-    newY = fixToMovY * kX + fixedPoint[1]
+    newX = Math.abs(fixToMovX * k + fixedPoint[0])
+    newY = Math.abs(fixToMovY * k + fixedPoint[1])
+    // Get new coords.
+    
+    /* if (debug){
+      console.log("newX/newY (incorrect sign):", newX, newY)
+    } */
+    
+    newX *= Math.sign(movablePoint[0]) || 1
+    newY *= Math.sign(movablePoint[1]) || 1
+    // Put new coords in the corect quadrant.
+    
+    /* if (debug){
+      console.log("newX/newY:", newX, newY)
+      console.log("Math.sign(fixedPoint[1]):", Math.sign(fixedPoint[1]))
+    } */
   }
   return [newX, newY]
 }
@@ -833,41 +856,41 @@ function renderEdge(vert, edges, debug=false){
     if (toDraw1 || toDraw2){
       // If either of the edge's vertices are in front of the ZY plane.
 
-      let v1Proj = perspectiveProj(v1, true, edgeIdx == 0)
-      let v2Proj = perspectiveProj(v2, true, edgeIdx == 0)
-      console.log("edges", [v1Proj, v2Proj])
+      let v1Proj = perspectiveProj(v1, true, edgeIdx == 1)
+      let v2Proj = perspectiveProj(v2, true, edgeIdx == 1)
       // Project the points onto the screen.
 
 
       // Directly drawing the proj points (even behind cam) works well enough.
       // ¯\_(ツ)_/¯
-      /*
+      // P.S: NO.
+      
       if (toDraw1 != toDraw2){
         let frontProj = toDraw1? v1Proj : v2Proj // Point in fron of cam.
         let hidenProj = toDraw1? v2Proj : v1Proj // Point behind cam.
 
         if (inFOV(hidenProj)){
-          if (debug){
+          /* if (edgeIdx==1){
             console.log("Pre off screen:")
             console.log("front:", frontProj, "hiden:", hidenProj)
-          }
+          } */
 
-          hidenProj = pointOffScreen(frontProj ,hidenProj , hCanvas_w, hCanvas_h, edgeIdx == 0)
+          hidenProj = pointOffScreen(frontProj ,hidenProj , hCanvas_w, hCanvas_h, edgeIdx == 1)
           // Get off screen point proj.
 
-          if (debug){
+          /* if (edgeIdx==1){
             console.log("Post off screen:")
             console.log("front:", frontProj, "hiden:", hidenProj)
-          }
+          } */
 
           v1Proj = frontProj
           v2Proj = hidenProj
         }
       }
-      */
+      
 
       drawLine(v1Proj[0], v1Proj[1], v2Proj[0], v2Proj[1], true,
-        edges[edgeIdx]["color"], debug=false)
+        edges[edgeIdx]["color"], debug=(edgeIdx==1))
       // Draw the edge.
     }
   }
@@ -902,7 +925,7 @@ function renderPolygon(vert, faces){
           return perspectiveProj(vertPos, true)
       })
       // Project the points onto the screen (They're already rel to cam).
-console.log("face", faceVertProj)
+
       drawPolygon(faceVertProj, faces[faceIdx]["color"])
       // Draw the Polygon face.
     }
@@ -984,7 +1007,7 @@ function rendering(geometry, renderV=true, renderE=true, renderF=true){
 
 
 // Rendering Routine.
-function updateScreen(debug=false){
+function updateScreen(debug=true){
   clearCanvas()
   rendering(geometry=toRender, renderV=true, renderE=true, renderF=true)
   drawBorder()
@@ -1010,7 +1033,7 @@ function loadJSON(){
   {
     "Id": 3, "name": "test", "mode": "pef", "isRendered": true, "position": [0.0, 0.0, 0.0], "rotation": [0.0, 0.0],
     "points":[{"point":[0, 0, 0], "color": "#000000"}, {"point":[0, 3, 0], "color": "#000000"}, {"point":[0, 0, 3], "color": "#000000"}, {"point":[1, 0, 0], "color": "#000000"}, {"point":[1, 3, 0], "color": "#000000"}, {"point":[1, 0, 3], "color": "#000000"}],
-    "edges": [/*{"edge": [0,1], "color": "#000000"}, {"edge": [2,1], "color": "#000000"}, {"edge": [0,2], "color": "#000000"}, */{"edge": [3,4], "color": "#000000"}, {"edge": [4,5], "color": "#000000"}, {"edge": [5,3], "color": "#000000"}],
+    "edges": [/*{"edge": [0,1], "color": "#000000"}, {"edge": [2,1], "color": "#000000"}, {"edge": [0,2], "color": "#000000"}, */{"edge": [3,4], "color": "#FF0000"}, {"edge": [4,5], "color": "#00FF00"}, {"edge": [5,3], "color": "#0000FF"}],
     "faces": [/*{"face": [0,1,2], "color": "#FF00FF"}], */{"face": [3,4,5], "color": "#FF0000"}]
   },
   {
